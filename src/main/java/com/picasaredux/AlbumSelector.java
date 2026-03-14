@@ -26,7 +26,7 @@ class AlbumSelector extends UnderlyingSwingComponent {
 
         go.addActionListener(_ -> {
             JFileChooser chooser = new JFileChooser();
-            chooser.setCurrentDirectory(new java.io.File(".."));
+            chooser.setCurrentDirectory(new java.io.File("."));
             chooser.setDialogTitle("Pick an album folder");
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
