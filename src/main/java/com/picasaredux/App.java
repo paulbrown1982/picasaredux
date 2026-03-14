@@ -8,7 +8,7 @@ class App {
     public App() {
         JFrame frame = new JFrame("Picasa Redux");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.add(generateLayout());
         frame.setVisible(true);
     }
