@@ -31,7 +31,7 @@ class GridResizer extends UnderlyingSwingComponent {
         subjectGrid = grid;
         sizeLabel = new JLabel(formatLabel(grid.getThumbnailSize()));
         tall = false;
-        currentDimensions = generateDims(4 / 3f);
+        currentDimensions = generateDims(5 / 4f);
 
         JButton trueRatio = new JButton("1:true");
         trueRatio.setToolTipText("True ratio");
@@ -39,17 +39,20 @@ class GridResizer extends UnderlyingSwingComponent {
         JButton square = new JButton("1:1");
         square.setToolTipText("Square");
 
+        JButton five2four = new JButton("5:4");
+        five2four.setToolTipText("Photography & art prints - e.g. 8\"x10\" and 16\"x20\" (1.25 / 1)");
+        five2four.setEnabled(false);
+
         JButton four2three = new JButton("4:3");
         four2three.setToolTipText("Classic TV ratio - e.g. VGA (1.333 / 0.75)");
-        four2three.setEnabled(false);
 
         JButton three2two = new JButton("3:2");
-        three2two.setToolTipText("Classic Photo ratio - e.g. 6in x 4in (0.66)");
+        three2two.setToolTipText("Classic 35mm film ratio - e.g. 6in x 4in (0.66)");
 
         JButton sixteen2nine = new JButton("16:9");
         sixteen2nine.setToolTipText("Widescreen TV ratio (0.5625)");
 
-        List<JButton> allRatioButtons = List.of(trueRatio, square, four2three, three2two, sixteen2nine);
+        List<JButton> allRatioButtons = List.of(trueRatio, square, five2four, four2three, three2two, sixteen2nine);
 
         JButton rotateButton = new JButton("⟳");
         rotateButton.setToolTipText("Rotate thumbnails");
@@ -75,6 +78,15 @@ class GridResizer extends UnderlyingSwingComponent {
             allRatioButtons.forEach(button -> button.setEnabled(true));
             square.setEnabled(false);
             rotateButton.setEnabled(false);
+            adjustGridSize();
+        });
+
+        five2four.addActionListener(e -> {
+            currentDimensions = generateDims(5 / 4f);
+            currentDimensionIndex = 0;
+            allRatioButtons.forEach(button -> button.setEnabled(true));
+            five2four.setEnabled(false);
+            rotateButton.setEnabled(true);
             adjustGridSize();
         });
 

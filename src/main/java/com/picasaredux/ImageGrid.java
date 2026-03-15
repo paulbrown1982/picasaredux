@@ -19,7 +19,7 @@ class ImageGrid extends UnderlyingSwingComponent {
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
-        thumbnailSize = new Dimension(160, 120);
+        thumbnailSize = new Dimension(160, 128);
 
         jList = new JList<>();
         jList.setLayout(new BorderLayout());
