@@ -79,16 +79,16 @@ class DirectoryInTree extends FileInTree {
         return List.of();
     }
 
-    protected boolean isUsefulDirectory(File file) {
+    private boolean isUsefulDirectory(File file) {
         if (file.getName().startsWith(".")) return false;
         return file.isDirectory();
     }
 
-    protected boolean isNotEmpty() {
+    boolean isNotEmpty() {
         return !(foldersBelowMe.isEmpty() && imagesBelowMe.isEmpty());
     }
 
-    protected boolean containsDuplicateFiles() {
+    boolean containsDuplicateFiles() {
         return numberOfDuplicatesBelowMe > 0;
     }
 

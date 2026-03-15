@@ -41,7 +41,7 @@ class ImageCanvas extends JPanel implements Scrollable {
         return image != null && image.getWidth() >= image.getHeight();
     }
 
-    public void toggleRenderingMode(boolean paintFullWidth) {
+    void toggleRenderingMode(boolean paintFullWidth) {
         paintFullWidthExclusion = paintFullWidth;
     }
 
