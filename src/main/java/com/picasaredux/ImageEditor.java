@@ -73,6 +73,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         showMetadata.addActionListener(_ -> editableImage.showMetadata());
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     void setImage(ImageFileInTree ifit) {
         editableImage.setImage(ifit);
     }

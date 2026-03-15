@@ -187,6 +187,7 @@ class FileTree {
         enclosingUIComponent.repaint();
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     void setupActionListeners(final VerticalSlider jsp) {
         jTree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override

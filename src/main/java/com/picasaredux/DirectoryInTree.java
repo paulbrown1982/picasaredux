@@ -23,7 +23,7 @@ class DirectoryInTree extends FileInTree {
 
         duplicates = _duplicates;
 
-        flushDescendents();
+        flushDescendants();
     }
 
     protected static boolean isImage(File file) {
@@ -53,7 +53,7 @@ class DirectoryInTree extends FileInTree {
                 .toList();
     }
 
-    private void flushDescendents() {
+    private void flushDescendants() {
         List<? extends FileInTree> children = getDescendants();
 
         imagesBelowMe = extractChildImages(children);
@@ -98,15 +98,16 @@ class DirectoryInTree extends FileInTree {
     }
 
     List<DirectoryInTree> listChildFolders(boolean flushCache) {
-        if (flushCache) flushDescendents();
+        if (flushCache) flushDescendants();
         return foldersBelowMe;
     }
 
     List<ImageFileInTree> listChildImages(boolean flushCache) {
-        if (flushCache) flushDescendents();
+        if (flushCache) flushDescendants();
         return imagesBelowMe;
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     boolean imageIsDuplicate(ImageFileInTree ifit) {
         return duplicates.getOrDefault(ifit.getHash(), new AtomicInteger(0)).get() > 0;
     }
