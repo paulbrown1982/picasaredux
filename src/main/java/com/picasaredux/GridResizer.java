@@ -57,65 +57,17 @@ class GridResizer extends UnderlyingSwingComponent {
         JButton rotateButton = new JButton("⟳");
         rotateButton.setToolTipText("Rotate thumbnails");
 
-        rotateButton.addActionListener(e -> {
+        rotateButton.addActionListener(_ -> {
             tall = !tall;
             adjustGridSize();
         });
 
-        trueRatio.addActionListener(e -> {
-            currentDimensions = generateDims(0);
-            currentDimensionIndex = 0;
-            tall = false;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            trueRatio.setEnabled(false);
-            rotateButton.setEnabled(false);
-            adjustGridSize();
-        });
-
-        square.addActionListener(e -> {
-            currentDimensions = generateDims(1);
-            currentDimensionIndex = 0;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            square.setEnabled(false);
-            rotateButton.setEnabled(false);
-            adjustGridSize();
-        });
-
-        five2four.addActionListener(e -> {
-            currentDimensions = generateDims(5 / 4f);
-            currentDimensionIndex = 0;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            five2four.setEnabled(false);
-            rotateButton.setEnabled(true);
-            adjustGridSize();
-        });
-
-        four2three.addActionListener(e -> {
-            currentDimensions = generateDims(4 / 3f);
-            currentDimensionIndex = 0;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            four2three.setEnabled(false);
-            rotateButton.setEnabled(true);
-            adjustGridSize();
-        });
-
-        three2two.addActionListener(e -> {
-            currentDimensions = generateDims(3 / 2f);
-            currentDimensionIndex = 0;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            three2two.setEnabled(false);
-            rotateButton.setEnabled(true);
-            adjustGridSize();
-        });
-
-        sixteen2nine.addActionListener(e -> {
-            currentDimensions = generateDims(16 / 9f);
-            currentDimensionIndex = 0;
-            allRatioButtons.forEach(button -> button.setEnabled(true));
-            sixteen2nine.setEnabled(false);
-            rotateButton.setEnabled(true);
-            adjustGridSize();
-        });
+        wireRatioButton(trueRatio, 0, allRatioButtons, rotateButton, true, false);
+        wireRatioButton(square, 1, allRatioButtons, rotateButton, false, false);
+        wireRatioButton(five2four, 5 / 4f, allRatioButtons, rotateButton, false, true);
+        wireRatioButton(four2three, 4 / 3f, allRatioButtons, rotateButton, false, true);
+        wireRatioButton(three2two, 3 / 2f, allRatioButtons, rotateButton, false, true);
+        wireRatioButton(sixteen2nine, 16 / 9f, allRatioButtons, rotateButton, false, true);
 
         JPanel ratioButtons = new JPanel();
         allRatioButtons.forEach(ratioButtons::add);
@@ -127,14 +79,14 @@ class GridResizer extends UnderlyingSwingComponent {
 
         decreaseThumbnailSize = new JButton("-");
         decreaseThumbnailSize.setToolTipText("Decrease thumbnail size");
-        decreaseThumbnailSize.addActionListener(e -> {
+        decreaseThumbnailSize.addActionListener(_ -> {
             setCurrentDimensionIndex(Math.max(0, currentDimensionIndex - 1));
             adjustGridSize();
         });
 
         increaseThumbnailSize = new JButton("+");
         increaseThumbnailSize.setToolTipText("Increase thumbnail size");
-        increaseThumbnailSize.addActionListener(e -> {
+        increaseThumbnailSize.addActionListener(_ -> {
             setCurrentDimensionIndex(Math.min(currentDimensions.size() - 1, currentDimensionIndex + 1));
             adjustGridSize();
         });
@@ -181,6 +133,24 @@ class GridResizer extends UnderlyingSwingComponent {
 
     private String formatLabel(Dimension d) {
         return d.width + " x " + d.height;
+    }
+
+    private void wireRatioButton(JButton button, float ratio, List<JButton> allRatioButtons, JButton rotateButton,
+                                 boolean resetTall, boolean allowRotate) {
+        button.addActionListener(_ -> applyRatio(ratio, button, allRatioButtons, rotateButton, resetTall, allowRotate));
+    }
+
+    private void applyRatio(float ratio, JButton active, List<JButton> allRatioButtons, JButton rotateButton,
+                            boolean resetTall, boolean allowRotate) {
+        currentDimensions = generateDims(ratio);
+        currentDimensionIndex = 0;
+        if (resetTall) {
+            tall = false;
+        }
+        allRatioButtons.forEach(button -> button.setEnabled(true));
+        active.setEnabled(false);
+        rotateButton.setEnabled(allowRotate);
+        adjustGridSize();
     }
 
 }
