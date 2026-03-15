@@ -12,6 +12,7 @@ class ImageCanvas extends JPanel implements Scrollable {
     ImageCanvas(ImageProvider imageProvider) {
         this.imageProvider = imageProvider;
     }
+
     private Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
         BufferedImage image = imageProvider.getImage();
         if (image == null) {

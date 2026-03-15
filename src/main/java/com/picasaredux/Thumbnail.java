@@ -14,7 +14,7 @@ class Thumbnail extends UnderlyingSwingComponent {
 
     final FileInTree fit;
 
-    public Thumbnail(FileInTree imageFIT) {
+    Thumbnail(FileInTree imageFIT) {
         label = new JLabel();
         try {
             image = ImageIO.read(imageFIT.getUnderlying());
@@ -25,11 +25,11 @@ class Thumbnail extends UnderlyingSwingComponent {
         setUnderlyingComponent(label);
     }
 
-    public FileInTree getFIT() {
+    FileInTree getFIT() {
         return fit;
     }
 
-    public void resizeIcon(Dimension newSize) {
+    void resizeIcon(Dimension newSize) {
         if (newSize.height == 0) {
             float imageRatio = (float) image.getHeight() / image.getWidth();
             newSize = new Dimension(newSize.width, (int) (newSize.width * imageRatio));

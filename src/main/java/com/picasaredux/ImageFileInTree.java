@@ -6,7 +6,7 @@ class ImageFileInTree extends FileInTree {
 
     final String hash;
 
-    public ImageFileInTree(File f) {
+    ImageFileInTree(File f) {
         super(f);
         hash = getDigest(file);
     }

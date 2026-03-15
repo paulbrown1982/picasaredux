@@ -10,7 +10,7 @@ class AlbumSelector extends UnderlyingSwingComponent {
     final JTextField jtf;
     final JButton go;
 
-    public AlbumSelector() {
+    AlbumSelector() {
         jtf = new JTextField();
         go = new JButton("Select album folder");
 
@@ -21,7 +21,7 @@ class AlbumSelector extends UnderlyingSwingComponent {
         setUnderlyingComponent(panel);
     }
 
-    public void setupActionListeners(VerticalSlider verticalSlider) {
+    void setupActionListeners(VerticalSlider verticalSlider) {
         verticalSlider.hide();
 
         go.addActionListener(_ -> {

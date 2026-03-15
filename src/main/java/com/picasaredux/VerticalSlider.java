@@ -13,7 +13,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
     final JPanel rightHandSide;
 
-    public VerticalSlider() {
+    VerticalSlider() {
         leftHandSide = new JPanel();
         leftHandSide.setLayout(new BorderLayout());
 
@@ -55,25 +55,25 @@ class VerticalSlider extends UnderlyingSwingComponent {
         setUnderlyingComponent(splitPane);
     }
 
-    public void setToPreferredSize() {
+    void setToPreferredSize() {
         splitPane.resetToPreferredSizes();
         splitPane.repaint();
         splitPane.revalidate();
     }
 
-    public void hide() {
+    void hide() {
         splitPane.setVisible(false);
     }
 
-    public void setAlbum(String albumFolder) {
+    void setAlbum(String albumFolder) {
         fileTree.setAlbum(albumFolder);
     }
 
-    public void show() {
+    void show() {
         splitPane.setVisible(true);
     }
 
-    public void showImageGallery(DirectoryInTree fit) {
+    void showImageGallery(DirectoryInTree fit) {
         ImageGallery imageGallery = new ImageGallery(fileTree);
         imageGallery.showForDirectory(fit);
         rightHandSide.removeAll();
@@ -82,7 +82,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         rightHandSide.repaint();
     }
 
-    public void showImageEditor(ImageFileInTree fit) {
+    void showImageEditor(ImageFileInTree fit) {
         ImageEditor imageEditor = new ImageEditor(fileTree);
         imageEditor.setImage(fit);
         rightHandSide.removeAll();

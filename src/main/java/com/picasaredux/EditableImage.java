@@ -26,16 +26,17 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
                 .map(f -> f.substring(filename.lastIndexOf(".") + 1));
     }
 
-    public EditableImage() {
+    EditableImage() {
         canvas = new ImageCanvas(this);
         setUnderlyingComponent(canvas);
     }
 
+    @Override
     public BufferedImage getImage() {
         return image;
     }
 
-    public void setImage(ImageFileInTree fileInTree) {
+    void setImage(ImageFileInTree fileInTree) {
         originalImageFile = fileInTree.getUnderlying();
 
         try {
@@ -49,13 +50,13 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         }
     }
 
-    public void toggleRenderingMode(final boolean isSelected) {
+    void toggleRenderingMode(final boolean isSelected) {
         canvas.toggleRenderingMode(isSelected);
         canvas.repaint();
         canvas.revalidate();
     }
 
-    public void rotateClockwise() {
+    void rotateClockwise() {
         AffineTransform tx = AffineTransform.getRotateInstance(Math.PI / 2, image.getWidth() / 2d, image.getHeight() / 2d);
         double offset = (image.getWidth() - image.getHeight()) / 2d;
         tx.translate(offset, offset);
@@ -68,7 +69,7 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         }
     }
 
-    public void rotateAnticlockwise() {
+    void rotateAnticlockwise() {
         AffineTransform tx = AffineTransform.getRotateInstance(-Math.PI / 2, image.getWidth() / 2d, image.getHeight() / 2d);
         double offset = (image.getWidth() - image.getHeight()) / 2d;
         tx.translate(-offset, -offset);
@@ -81,26 +82,26 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         }
     }
 
-    public void mirror() {
+    void mirror() {
         AffineTransform tx = AffineTransform.getScaleInstance(-1d, 1d);
         tx.translate(-image.getWidth(), 0);
         applyTransformation(tx, image.getWidth(), image.getHeight());
         toggleActionPerformed("mirrored");
     }
 
-    public void flip() {
+    void flip() {
         AffineTransform tx = AffineTransform.getScaleInstance(1d, -1d);
         tx.translate(0, -image.getHeight());
         applyTransformation(tx, image.getWidth(), image.getHeight());
         toggleActionPerformed("flipped");
     }
 
-    public void showMetadata() {
+    void showMetadata() {
         float aspectRatio = (float) image.getWidth() / (float) image.getHeight();
         System.out.println("Aspect ratio: " + aspectRatio);
     }
 
-    public ImageFileInTree saveCopy() {
+    ImageFileInTree saveCopy() {
         File fileCopy = new File(getFileToCopyInto());
         try {
             boolean success = ImageIO.write(image, "png", fileCopy);

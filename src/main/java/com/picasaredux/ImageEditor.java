@@ -16,7 +16,7 @@ class ImageEditor extends UnderlyingSwingComponent {
 
     final EditableImage editableImage;
 
-    public ImageEditor(FileTree fileTree) {
+    ImageEditor(FileTree fileTree) {
 
         JPanel buttons = new JPanel(new FlowLayout());
 
@@ -60,7 +60,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         this.setupActionListeners(fileTree);
     }
 
-    public void setupActionListeners(FileTree fileTree) {
+    void setupActionListeners(FileTree fileTree) {
         fitToPanel.addActionListener(_ -> editableImage.toggleRenderingMode(fitToPanel.isSelected()));
         rotateClockwise.addActionListener(_ -> editableImage.rotateClockwise());
         rotateAnticlockwise.addActionListener(_ -> editableImage.rotateAnticlockwise());
@@ -73,7 +73,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         showMetadata.addActionListener(_ -> editableImage.showMetadata());
     }
 
-    public void setImage(ImageFileInTree ifit) {
+    void setImage(ImageFileInTree ifit) {
         editableImage.setImage(ifit);
     }
 

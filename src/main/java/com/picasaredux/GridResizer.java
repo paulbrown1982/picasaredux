@@ -24,7 +24,7 @@ class GridResizer extends UnderlyingSwingComponent {
 
     int currentDimensionIndex = 0;
 
-    public GridResizer(ImageGrid grid) {
+    GridResizer(ImageGrid grid) {
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
 

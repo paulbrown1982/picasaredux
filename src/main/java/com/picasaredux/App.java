@@ -5,7 +5,7 @@ import java.awt.*;
 
 class App {
 
-    public App() {
+    App() {
         JFrame frame = new JFrame("Picasa Redux");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);

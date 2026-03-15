@@ -14,7 +14,7 @@ class ImageGrid extends UnderlyingSwingComponent {
 
     List<Thumbnail> thumbnails;
 
-    public ImageGrid(FileTree ft) {
+    ImageGrid(FileTree ft) {
 
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -33,7 +33,7 @@ class ImageGrid extends UnderlyingSwingComponent {
         setUnderlyingComponent(panel);
     }
 
-    public void generateThumbnails(DirectoryInTree fit) {
+    void generateThumbnails(DirectoryInTree fit) {
         thumbnails = fit.listChildImages(false).parallelStream().map(Thumbnail::new).toList();
         render();
     }
@@ -44,11 +44,11 @@ class ImageGrid extends UnderlyingSwingComponent {
         jList.setVisibleRowCount((int) Math.ceil(Math.sqrt(thumbnails.size())));
     }
 
-    public Dimension getThumbnailSize() {
+    Dimension getThumbnailSize() {
         return thumbnailSize;
     }
 
-    public void setThumbnailSize(Dimension _thumbnailSize) {
+    void setThumbnailSize(Dimension _thumbnailSize) {
         thumbnailSize = _thumbnailSize;
         render();
     }

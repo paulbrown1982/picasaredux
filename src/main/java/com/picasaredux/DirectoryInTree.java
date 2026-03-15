@@ -18,7 +18,7 @@ class DirectoryInTree extends FileInTree {
     List<ImageFileInTree> imagesBelowMe;
     List<DirectoryInTree> foldersBelowMe;
 
-    public DirectoryInTree(File f, final Map<String, AtomicInteger> _duplicates) {
+    DirectoryInTree(File f, final Map<String, AtomicInteger> _duplicates) {
         super(f);
 
         duplicates = _duplicates;
@@ -39,14 +39,14 @@ class DirectoryInTree extends FileInTree {
         }
     }
 
-    public static List<ImageFileInTree> extractChildImages(List<? extends FileInTree> children) {
+    static List<ImageFileInTree> extractChildImages(List<? extends FileInTree> children) {
         return children.stream()
                 .filter(ImageFileInTree.class::isInstance)
                 .map(ImageFileInTree.class::cast)
                 .toList();
     }
 
-    public static List<DirectoryInTree> extractChildFolders(List<? extends FileInTree> children) {
+    static List<DirectoryInTree> extractChildFolders(List<? extends FileInTree> children) {
         return children.stream()
                 .filter(DirectoryInTree.class::isInstance)
                 .map(DirectoryInTree.class::cast)
@@ -97,17 +97,17 @@ class DirectoryInTree extends FileInTree {
         return file.getName() + " [" + String.format("%,d", numberOfFilesBelowMe) + " files; " + bytesPrinter(sizeOfFilesBelowMe) + "; " + numberOfDuplicatesBelowMe + " dupes]";
     }
 
-    public List<DirectoryInTree> listChildFolders(boolean flushCache) {
+    List<DirectoryInTree> listChildFolders(boolean flushCache) {
         if (flushCache) flushDescendents();
         return foldersBelowMe;
     }
 
-    public List<ImageFileInTree> listChildImages(boolean flushCache) {
+    List<ImageFileInTree> listChildImages(boolean flushCache) {
         if (flushCache) flushDescendents();
         return imagesBelowMe;
     }
 
-    public boolean imageIsDuplicate(ImageFileInTree ifit) {
+    boolean imageIsDuplicate(ImageFileInTree ifit) {
         return duplicates.getOrDefault(ifit.getHash(), new AtomicInteger(0)).get() > 0;
     }
 

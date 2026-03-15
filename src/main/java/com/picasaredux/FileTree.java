@@ -99,26 +99,26 @@ class FileTree {
         return ret;
     }
 
-    public void setAlbum(String _albumFolder) {
+    void setAlbum(String _albumFolder) {
         defaultModel = build(_albumFolder);
         jTree.setModel(defaultModel);
     }
 
-    public void showDuplicatesOnly(boolean show) {
+    void showDuplicatesOnly(boolean show) {
         duplicatesOnly = show;
         rebuildFromRoot();
     }
 
-    public void rebuildFromRoot() {
+    void rebuildFromRoot() {
         rebuildFrom((DefaultMutableTreeNode) defaultModel.getRoot());
     }
 
-    public void rebuildAndSelect(ImageFileInTree fileToOpen) {
+    void rebuildAndSelect(ImageFileInTree fileToOpen) {
         rebuildFromRoot();
         selectFileFromRoot(fileToOpen);
     }
 
-    public void selectFileInCurrentFolder(FileInTree fit) {
+    void selectFileInCurrentFolder(FileInTree fit) {
         selectFile(fit, this.getCurrentSelectedNode());
     }
 
@@ -154,7 +154,7 @@ class FileTree {
         return false;
     }
 
-    public void rebuildFrom(DefaultMutableTreeNode fileToRebuild) {
+    void rebuildFrom(DefaultMutableTreeNode fileToRebuild) {
 
 
         DefaultMutableTreeNode dirToRebuild;
@@ -187,7 +187,7 @@ class FileTree {
         enclosingUIComponent.repaint();
     }
 
-    public void setupActionListeners(final VerticalSlider jsp) {
+    void setupActionListeners(final VerticalSlider jsp) {
         jTree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override
             public void treeExpanded(TreeExpansionEvent event) {
@@ -241,14 +241,14 @@ class FileTree {
         return (DefaultMutableTreeNode) jTree.getLastSelectedPathComponent();
     }
 
-    public void expandAllNodes() {
+    void expandAllNodes() {
         int row = 0;
         while (row++ < jTree.getRowCount()) {
             jTree.expandRow(row);
         }
     }
 
-    public void collapseAllNodes() {
+    void collapseAllNodes() {
         int row = 0;
         while (row++ < jTree.getRowCount()) {
             jTree.collapseRow(row);

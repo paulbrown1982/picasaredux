@@ -44,7 +44,7 @@ abstract class FileInTree {
     private String creationTime;
 
 
-    public FileInTree(File f) {
+    FileInTree(File f) {
         file = f;
         getAttributes(file).ifPresent(attributes -> {
             fileSize = attributes.size();
@@ -52,7 +52,7 @@ abstract class FileInTree {
         });
     }
 
-    public static String getDigest(File f) {
+    static String getDigest(File f) {
         try {
             FileInputStream fi = new FileInputStream(f);
             byte[] fileData = fi.readAllBytes();
@@ -63,7 +63,7 @@ abstract class FileInTree {
         }
     }
 
-    public static DateTimeFormatter createDTF(String pattern) {
+    static DateTimeFormatter createDTF(String pattern) {
         return DateTimeFormatter.ofPattern(pattern).withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
     }
 
@@ -71,11 +71,11 @@ abstract class FileInTree {
         return String.format("%,d", Math.round(bytes / 100000f)) + " MB";
     }
 
-    public File getUnderlying() {
+    File getUnderlying() {
         return file;
     }
 
-    public String getAbsoluteFilePath() {
+    String getAbsoluteFilePath() {
         return file.getAbsolutePath();
     }
 
