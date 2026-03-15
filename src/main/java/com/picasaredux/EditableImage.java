@@ -1,8 +1,6 @@
 package com.picasaredux;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -12,7 +10,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
+class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
     final ImageCanvas canvas;
 
@@ -21,7 +19,6 @@ class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
     private File originalImageFile;
     private int originalImageType;
     int netRotationDegrees = 0;
-    private boolean paintFullWidthExclusion = false;
 
     private static Optional<String> getFileExtension(String filename) {
         return Optional.ofNullable(filename)
@@ -32,6 +29,10 @@ class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
     public EditableImage() {
         canvas = new ImageCanvas(this);
         setUnderlyingComponent(canvas);
+    }
+
+    public BufferedImage getImage() {
+        return image;
     }
 
     public void setImage(ImageFileInTree fileInTree) {
@@ -49,7 +50,7 @@ class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
     }
 
     public void toggleRenderingMode(final boolean isSelected) {
-        paintFullWidthExclusion = isSelected;
+        canvas.toggleRenderingMode(isSelected);
         canvas.repaint();
         canvas.revalidate();
     }
@@ -146,39 +147,5 @@ class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
         } else {
             return originalFilePath + generateActionsPerformedSummary();
         }
-    }
-
-    public boolean isImageWiderThanTall() {
-        return image != null && image.getWidth() >= image.getHeight();
-    }
-
-    public Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
-        if (image == null) {
-            return new Dimension(apertureWidth, apertureHeight);
-        }
-
-        float imageWidth = (float) image.getWidth();
-        float imageHeight = (float) image.getHeight();
-
-        int targetWidth = apertureWidth;
-        int targetHeight = apertureHeight;
-
-        if (isImageWiderThanTall() || paintFullWidthExclusion) {
-            float aspectRatio = imageHeight / imageWidth;
-            targetHeight = Math.round(apertureWidth * aspectRatio);
-        } else {
-            float aspectRatio = imageWidth / imageHeight;
-            targetWidth = Math.round(apertureHeight * aspectRatio);
-        }
-
-        return new Dimension(targetWidth, targetHeight);
-    }
-
-    public boolean isPaintFullWidthExclusionEnabled() {
-        return paintFullWidthExclusion;
-    }
-
-    public BufferedImage getImage() {
-        return image;
     }
 }

@@ -5,17 +5,50 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 class ImageCanvas extends JPanel implements Scrollable {
-    final PaintableImage imageToPaint;
+    final ImageProvider imageProvider;
 
-    ImageCanvas(PaintableImage imageToPaint) {
-        this.imageToPaint = imageToPaint;
+    private boolean paintFullWidthExclusion;
+
+    ImageCanvas(ImageProvider imageProvider) {
+        this.imageProvider = imageProvider;
+    }
+    private Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
+        BufferedImage image = imageProvider.getImage();
+        if (image == null) {
+            return new Dimension(apertureWidth, apertureHeight);
+        }
+
+        float imageWidth = (float) image.getWidth();
+        float imageHeight = (float) image.getHeight();
+
+        int targetWidth = apertureWidth;
+        int targetHeight = apertureHeight;
+
+        if (isImageWiderThanTall() || paintFullWidthExclusion) {
+            float aspectRatio = imageHeight / imageWidth;
+            targetHeight = Math.round(apertureWidth * aspectRatio);
+        } else {
+            float aspectRatio = imageWidth / imageHeight;
+            targetWidth = Math.round(apertureHeight * aspectRatio);
+        }
+
+        return new Dimension(targetWidth, targetHeight);
+    }
+
+    private boolean isImageWiderThanTall() {
+        BufferedImage image = imageProvider.getImage();
+        return image != null && image.getWidth() >= image.getHeight();
+    }
+
+    public void toggleRenderingMode(boolean paintFullWidth) {
+        paintFullWidthExclusion = paintFullWidth;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        BufferedImage image = imageToPaint.getImage();
+        BufferedImage image = imageProvider.getImage();
         if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
             System.err.println("No Image");
             return;
@@ -27,13 +60,13 @@ class ImageCanvas extends JPanel implements Scrollable {
             return;
         }
 
-        Dimension targetSize = imageToPaint.computeTargetSize(aperture.width, aperture.height);
+        Dimension targetSize = this.computeTargetSize(aperture.width, aperture.height);
         g.drawImage(image, 0, 0, targetSize.width, targetSize.height, this);
     }
 
     @Override
     public Dimension getPreferredSize() {
-        BufferedImage image = imageToPaint.getImage();
+        BufferedImage image = imageProvider.getImage();
         if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
             return super.getPreferredSize();
         }
@@ -41,7 +74,7 @@ class ImageCanvas extends JPanel implements Scrollable {
         if (getParent() instanceof JViewport viewport) {
             int viewportWidth = Math.max(1, viewport.getWidth());
             int viewportHeight = Math.max(1, viewport.getHeight());
-            return imageToPaint.computeTargetSize(viewportWidth, viewportHeight);
+            return this.computeTargetSize(viewportWidth, viewportHeight);
         }
 
         return new Dimension(image.getWidth(), image.getHeight());
@@ -64,11 +97,11 @@ class ImageCanvas extends JPanel implements Scrollable {
 
     @Override
     public boolean getScrollableTracksViewportWidth() {
-        return imageToPaint.isPaintFullWidthExclusionEnabled() || imageToPaint.isImageWiderThanTall();
+        return paintFullWidthExclusion || this.isImageWiderThanTall();
     }
 
     @Override
     public boolean getScrollableTracksViewportHeight() {
-        return !imageToPaint.isPaintFullWidthExclusionEnabled() && !imageToPaint.isImageWiderThanTall();
+        return !paintFullWidthExclusion && !this.isImageWiderThanTall();
     }
 }
