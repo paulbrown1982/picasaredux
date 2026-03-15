@@ -12,19 +12,26 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-class EditableImage extends JPanel implements Scrollable {
+class EditableImage extends UnderlyingSwingComponent implements PaintableImage {
+
+    final ImageCanvas canvas;
 
     final SortedSet<String> actionsPerformed = new TreeSet<>();
-    BufferedImage image;
-    File originalImageFile;
-    int originalImageType;
+    private BufferedImage image;
+    private File originalImageFile;
+    private int originalImageType;
     int netRotationDegrees = 0;
-    boolean paintFullWidthExclusion = false;
+    private boolean paintFullWidthExclusion = false;
 
     private static Optional<String> getFileExtension(String filename) {
         return Optional.ofNullable(filename)
                 .filter(f -> f.contains("."))
                 .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+
+    public EditableImage() {
+        canvas = new ImageCanvas(this);
+        setUnderlyingComponent(canvas);
     }
 
     public void setImage(ImageFileInTree fileInTree) {
@@ -34,8 +41,8 @@ class EditableImage extends JPanel implements Scrollable {
             image = ImageIO.read(originalImageFile);
             originalImageType = image.getType();
 
-            this.repaint();
-            this.revalidate();
+            canvas.repaint();
+            canvas.revalidate();
         } catch (IOException e) {
             throw new RuntimeException("Could not load \"" + originalImageFile + "\". Reason: " + e.getMessage(), e);
         }
@@ -43,8 +50,8 @@ class EditableImage extends JPanel implements Scrollable {
 
     public void toggleRenderingMode(final boolean isSelected) {
         paintFullWidthExclusion = isSelected;
-        this.repaint();
-        this.revalidate();
+        canvas.repaint();
+        canvas.revalidate();
     }
 
     public void rotateClockwise() {
@@ -117,8 +124,8 @@ class EditableImage extends JPanel implements Scrollable {
     private void applyTransformation(AffineTransform transformation, int width, int height) {
         final AffineTransformOp op = new AffineTransformOp(transformation, AffineTransformOp.TYPE_BILINEAR);
         image = op.filter(image, new BufferedImage(width, height, originalImageType)); // new BufferedImage ensures type is maintained
-        super.repaint();
-        super.revalidate();
+        canvas.repaint();
+        canvas.revalidate();
     }
 
     private String generateActionsPerformedSummary() {
@@ -141,70 +148,11 @@ class EditableImage extends JPanel implements Scrollable {
         }
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
-            System.err.println("No Image");
-            return;
-        }
-
-        Rectangle aperture = g.getClipBounds();
-        if (aperture == null) {
-            System.err.println("No Clip");
-            return;
-        }
-
-        Dimension targetSize = computeTargetSize(aperture.width, aperture.height);
-        g.drawImage(image, 0, 0, targetSize.width, targetSize.height, this);
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-        if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
-            return super.getPreferredSize();
-        }
-
-        if (getParent() instanceof JViewport viewport) {
-            int viewportWidth = Math.max(1, viewport.getWidth());
-            int viewportHeight = Math.max(1, viewport.getHeight());
-            return computeTargetSize(viewportWidth, viewportHeight);
-        }
-
-        return new Dimension(image.getWidth(), image.getHeight());
-    }
-
-    @Override
-    public Dimension getPreferredScrollableViewportSize() {
-        return getPreferredSize();
-    }
-
-    @Override
-    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-        return 16;
-    }
-
-    @Override
-    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-        return 64;
-    }
-
-    @Override
-    public boolean getScrollableTracksViewportWidth() {
-        return paintFullWidthExclusion || isImageWiderThanTall();
-    }
-
-    @Override
-    public boolean getScrollableTracksViewportHeight() {
-        return !paintFullWidthExclusion && !isImageWiderThanTall();
-    }
-
-    private boolean isImageWiderThanTall() {
+    public boolean isImageWiderThanTall() {
         return image != null && image.getWidth() >= image.getHeight();
     }
 
-    private Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
+    public Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
         if (image == null) {
             return new Dimension(apertureWidth, apertureHeight);
         }
@@ -224,5 +172,13 @@ class EditableImage extends JPanel implements Scrollable {
         }
 
         return new Dimension(targetWidth, targetHeight);
+    }
+
+    public boolean isPaintFullWidthExclusionEnabled() {
+        return paintFullWidthExclusion;
+    }
+
+    public BufferedImage getImage() {
+        return image;
     }
 }

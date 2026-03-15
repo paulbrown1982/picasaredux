@@ -53,7 +53,7 @@ class ImageEditor extends UnderlyingSwingComponent {
 
         panel = new JPanel(new BorderLayout());
         panel.add(buttons, BorderLayout.NORTH);
-        panel.add(new JScrollPane(editableImage), BorderLayout.CENTER);
+        panel.add(new JScrollPane(editableImage.getComponent()), BorderLayout.CENTER);
 
         setUnderlyingComponent(panel);
 
