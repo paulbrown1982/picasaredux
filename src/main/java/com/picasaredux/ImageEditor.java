@@ -5,16 +5,15 @@ import java.awt.*;
 
 class ImageEditor extends UnderlyingSwingComponent {
 
-    final JPanel panel;
-    final JToggleButton fitToPanel;
-    final JButton rotateClockwise;
-    final JButton rotateAnticlockwise;
-    final JButton mirror;
-    final JButton flip;
-    final JButton saveButton;
-    final JButton showMetadata;
+    private final JToggleButton fitToPanel;
+    private final JButton rotateClockwise;
+    private final JButton rotateAnticlockwise;
+    private final JButton mirror;
+    private final JButton flip;
+    private final JButton saveButton;
+    private final JButton showMetadata;
 
-    final EditableImage editableImage;
+    private final EditableImage editableImage;
 
     ImageEditor(FileTree fileTree) {
 
@@ -51,7 +50,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         buttons.add(saveButton);
         buttons.add(showMetadata);
 
-        panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttons, BorderLayout.NORTH);
         panel.add(new JScrollPane(editableImage.getComponent()), BorderLayout.CENTER);
 

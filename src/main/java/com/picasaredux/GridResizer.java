@@ -11,17 +11,17 @@ import static java.util.stream.Collectors.toCollection;
 class GridResizer extends UnderlyingSwingComponent {
 
     final static Integer[] DIM_WIDTHS = {160, 320, 480, 640, 800};
-    final JPanel panel;
-    final ImageGrid subjectGrid;
-    final JLabel sizeLabel;
-    final JButton decreaseThumbnailSize;
-    final JButton increaseThumbnailSize;
+    private final JPanel panel;
+    private final ImageGrid subjectGrid;
+    private final JLabel sizeLabel;
+    private final JButton decreaseThumbnailSize;
+    private final JButton increaseThumbnailSize;
 
-    ArrayList<Dimension> currentDimensions;
+    private ArrayList<Dimension> currentDimensions;
 
-    boolean tall;
+    private boolean tall;
 
-    int currentDimensionIndex = 0;
+    private int currentDimensionIndex = 0;
 
     GridResizer(ImageGrid grid) {
         panel = new JPanel();

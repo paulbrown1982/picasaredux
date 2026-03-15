@@ -5,12 +5,10 @@ import java.awt.*;
 
 class ImageGallery extends UnderlyingSwingComponent {
 
-    final JPanel panel;
-
-    final ImageGrid imageGrid;
+    private final ImageGrid imageGrid;
 
     ImageGallery(FileTree fileTree) {
-        panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         imageGrid = new ImageGrid(fileTree);
         GridResizer gridResizer = new GridResizer(imageGrid);
         panel.add(new JScrollPane(imageGrid.getComponent()), BorderLayout.CENTER);

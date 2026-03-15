@@ -5,11 +5,11 @@ import javax.swing.*;
 abstract class UnderlyingSwingComponent {
     private JComponent underlying;
 
-    protected JComponent getComponent() {
+    JComponent getComponent() {
         return underlying;
     }
 
-    protected void setUnderlyingComponent(JComponent jComponent) {
+    void setUnderlyingComponent(JComponent jComponent) {
         underlying = jComponent;
     }
 }

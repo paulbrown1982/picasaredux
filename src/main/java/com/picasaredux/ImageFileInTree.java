@@ -4,7 +4,7 @@ import java.io.File;
 
 class ImageFileInTree extends FileInTree {
 
-    final String hash;
+    private final String hash;
 
     ImageFileInTree(File f) {
         super(f);

@@ -6,9 +6,9 @@ import java.io.IOException;
 
 class AlbumSelector extends UnderlyingSwingComponent {
 
-    final JPanel panel;
-    final JTextField jtf;
-    final JButton go;
+    private final JPanel panel;
+    private final JTextField jtf;
+    private final JButton go;
 
     AlbumSelector() {
         jtf = new JTextField();

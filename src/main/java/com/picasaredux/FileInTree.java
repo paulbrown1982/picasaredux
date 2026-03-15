@@ -37,9 +37,9 @@ abstract class FileInTree {
         }
     }
 
-    protected final File file;
+    final File file;
 
-    protected Long fileSize = 0L;
+    Long fileSize = 0L;
 
     private String creationTime;
 

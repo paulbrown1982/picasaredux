@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 class ImageCanvas extends JPanel implements Scrollable {
-    final ImageProvider imageProvider;
+    private final ImageProvider imageProvider;
 
     private boolean paintFullWidthExclusion;
 

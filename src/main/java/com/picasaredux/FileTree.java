@@ -20,11 +20,12 @@ import java.util.HashMap;
 class FileTree {
 
     final JTree jTree;
-    final JComponent enclosingUIComponent;
 
-    DefaultTreeModel defaultModel;
+    private final JComponent enclosingUIComponent;
 
-    boolean duplicatesOnly = false;
+    private DefaultTreeModel defaultModel;
+
+    private boolean duplicatesOnly = false;
 
     FileTree(JComponent _enclosingUIComponent) {
         jTree = new JTree();

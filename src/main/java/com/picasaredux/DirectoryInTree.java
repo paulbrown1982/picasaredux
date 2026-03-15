@@ -11,12 +11,12 @@ import java.util.stream.Stream;
 
 class DirectoryInTree extends FileInTree {
 
-    final Map<String, AtomicInteger> duplicates;
-    Integer numberOfFilesBelowMe;
-    Long sizeOfFilesBelowMe;
-    Integer numberOfDuplicatesBelowMe;
-    List<ImageFileInTree> imagesBelowMe;
-    List<DirectoryInTree> foldersBelowMe;
+    private final Map<String, AtomicInteger> duplicates;
+    private Integer numberOfFilesBelowMe;
+    private Long sizeOfFilesBelowMe;
+    private Integer numberOfDuplicatesBelowMe;
+    private List<ImageFileInTree> imagesBelowMe;
+    private List<DirectoryInTree> foldersBelowMe;
 
     DirectoryInTree(File f, final Map<String, AtomicInteger> _duplicates) {
         super(f);

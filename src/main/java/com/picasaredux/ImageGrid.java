@@ -6,17 +6,15 @@ import java.util.List;
 
 class ImageGrid extends UnderlyingSwingComponent {
 
-    final JPanel panel;
+    private final JList<Thumbnail> jList;
 
-    final JList<Thumbnail> jList;
+    private Dimension thumbnailSize;
 
-    Dimension thumbnailSize;
-
-    List<Thumbnail> thumbnails;
+    private List<Thumbnail> thumbnails;
 
     ImageGrid(FileTree ft) {
 
-        panel = new JPanel();
+        JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
         thumbnailSize = new Dimension(160, 128);

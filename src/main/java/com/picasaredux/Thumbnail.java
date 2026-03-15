@@ -8,11 +8,11 @@ import java.io.IOException;
 
 class Thumbnail extends UnderlyingSwingComponent {
 
-    final JLabel label;
+    private final JLabel label;
 
-    final BufferedImage image;
+    private final BufferedImage image;
 
-    final FileInTree fit;
+    private final FileInTree fit;
 
     Thumbnail(FileInTree imageFIT) {
         label = new JLabel();

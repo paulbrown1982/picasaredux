@@ -5,16 +5,14 @@ import java.awt.*;
 
 class VerticalSlider extends UnderlyingSwingComponent {
 
-    final JSplitPane splitPane;
+    private final JSplitPane splitPane;
 
-    final FileTree fileTree;
+    private final FileTree fileTree;
 
-    final JPanel leftHandSide;
-
-    final JPanel rightHandSide;
+    private final JPanel rightHandSide;
 
     VerticalSlider() {
-        leftHandSide = new JPanel();
+        JPanel leftHandSide = new JPanel();
         leftHandSide.setLayout(new BorderLayout());
 
         fileTree = new FileTree(leftHandSide);

@@ -12,13 +12,13 @@ import java.util.TreeSet;
 
 class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
-    final ImageCanvas canvas;
+    private final ImageCanvas canvas;
 
-    final SortedSet<String> actionsPerformed = new TreeSet<>();
+    private final SortedSet<String> actionsPerformed = new TreeSet<>();
     private BufferedImage image;
     private File originalImageFile;
     private int originalImageType;
-    int netRotationDegrees = 0;
+    private int netRotationDegrees = 0;
 
     private static Optional<String> getFileExtension(String filename) {
         return Optional.ofNullable(filename)
