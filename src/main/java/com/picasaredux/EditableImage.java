@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-class EditableImage extends JPanel {
+class EditableImage extends JPanel implements Scrollable {
 
     final SortedSet<String> actionsPerformed = new TreeSet<>();
     BufferedImage image;
@@ -145,30 +145,84 @@ class EditableImage extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (image != null) {
-            Rectangle clip = g.getClipBounds();
-            if (clip != null) {
-                int currentWidth = clip.width;
-                int currentHeight = clip.height;
-                int targetWidth = currentWidth;
-                int targetHeight = currentHeight;
-                boolean paintFullWidth = image.getWidth() >= image.getHeight();
-
-                if (paintFullWidth || paintFullWidthExclusion) {
-                    float aspectRatio = (float) image.getHeight() / (float) image.getWidth();
-                    targetHeight = Float.valueOf(currentWidth * aspectRatio).intValue();
-                } else {
-                    float aspectRatio = (float) image.getWidth() / (float) image.getHeight();
-                    targetWidth = Float.valueOf(currentHeight * aspectRatio).intValue();
-                }
-                Dimension d = new Dimension(targetWidth, targetHeight);
-                if (!this.getSize().equals(d)) {
-                    this.setPreferredSize(d);
-                }
-                g.drawImage(image, 0, 0, targetWidth, targetHeight, this);
-            } else {
-                System.err.println("No Clip");
-            }
+        if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
+            System.err.println("No Image");
+            return;
         }
+
+        Rectangle aperture = g.getClipBounds();
+        if (aperture == null) {
+            System.err.println("No Clip");
+            return;
+        }
+
+        Dimension targetSize = computeTargetSize(aperture.width, aperture.height);
+        g.drawImage(image, 0, 0, targetSize.width, targetSize.height, this);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        if (image == null || image.getWidth() == 0 || image.getHeight() == 0) {
+            return super.getPreferredSize();
+        }
+
+        if (getParent() instanceof JViewport viewport) {
+            int viewportWidth = Math.max(1, viewport.getWidth());
+            int viewportHeight = Math.max(1, viewport.getHeight());
+            return computeTargetSize(viewportWidth, viewportHeight);
+        }
+
+        return new Dimension(image.getWidth(), image.getHeight());
+    }
+
+    @Override
+    public Dimension getPreferredScrollableViewportSize() {
+        return getPreferredSize();
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 16;
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 64;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        return paintFullWidthExclusion || isImageWiderThanTall();
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight() {
+        return !paintFullWidthExclusion && !isImageWiderThanTall();
+    }
+
+    private boolean isImageWiderThanTall() {
+        return image != null && image.getWidth() >= image.getHeight();
+    }
+
+    private Dimension computeTargetSize(int apertureWidth, int apertureHeight) {
+        if (image == null) {
+            return new Dimension(apertureWidth, apertureHeight);
+        }
+
+        float imageWidth = (float) image.getWidth();
+        float imageHeight = (float) image.getHeight();
+
+        int targetWidth = apertureWidth;
+        int targetHeight = apertureHeight;
+
+        if (isImageWiderThanTall() || paintFullWidthExclusion) {
+            float aspectRatio = imageHeight / imageWidth;
+            targetHeight = Math.round(apertureWidth * aspectRatio);
+        } else {
+            float aspectRatio = imageWidth / imageHeight;
+            targetWidth = Math.round(apertureHeight * aspectRatio);
+        }
+
+        return new Dimension(targetWidth, targetHeight);
     }
 }

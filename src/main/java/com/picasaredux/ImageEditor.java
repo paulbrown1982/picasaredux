@@ -22,7 +22,7 @@ class ImageEditor extends UnderlyingSwingComponent {
 
         editableImage = new EditableImage();
 
-        fitToPanel = new JToggleButton("|");
+        fitToPanel = new JToggleButton("↔️");
         fitToPanel.setToolTipText("Fit width instead of height");
 
         rotateClockwise = new JButton("⟳");
@@ -61,7 +61,7 @@ class ImageEditor extends UnderlyingSwingComponent {
     }
 
     public void setupActionListeners(FileTree fileTree) {
-        fitToPanel.addActionListener(e -> editableImage.toggleRenderingMode(fitToPanel.isSelected()));
+        fitToPanel.addActionListener(_ -> editableImage.toggleRenderingMode(fitToPanel.isSelected()));
         rotateClockwise.addActionListener(_ -> editableImage.rotateClockwise());
         rotateAnticlockwise.addActionListener(_ -> editableImage.rotateAnticlockwise());
         mirror.addActionListener(_ -> editableImage.mirror());
