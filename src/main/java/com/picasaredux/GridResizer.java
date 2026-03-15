@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toCollection;
 
 class GridResizer extends UnderlyingSwingComponent {
 
-    final static Integer[] DIM_WIDTHS = {160, 320, 480, 640};
+    final static Integer[] DIM_WIDTHS = {160, 320, 480, 640, 800};
     final JPanel panel;
     final ImageGrid subjectGrid;
     final JLabel sizeLabel;
