@@ -21,15 +21,12 @@ class FileTree {
 
     final JTree jTree;
 
-    private final JComponent enclosingUIComponent;
-
     private DefaultTreeModel defaultModel;
 
     private boolean duplicatesOnly = false;
 
-    FileTree(JComponent _enclosingUIComponent) {
+    FileTree() {
         jTree = new JTree();
-        enclosingUIComponent = _enclosingUIComponent;
     }
 
     private static boolean isDirectory(TreeNode node) {
@@ -156,8 +153,6 @@ class FileTree {
     }
 
     void rebuildFrom(DefaultMutableTreeNode fileToRebuild) {
-
-
         DefaultMutableTreeNode dirToRebuild;
         int newFileIndex = 0;
         if (fileToRebuild.isLeaf()) {
@@ -180,12 +175,16 @@ class FileTree {
                 DefaultMutableTreeNode rebuiltDir = buildFromFIT(fitAtDirToRebuild, true);
                 defaultModel.removeNodeFromParent(dirToRebuild);
                 defaultModel.insertNodeInto(rebuiltDir, parent, removedNodeIndex);
-                jTree.setSelectionPath(new TreePath(((DefaultMutableTreeNode) rebuiltDir.getChildAt(newFileIndex)).getPath()));
+                defaultModel.nodeStructureChanged(parent);
+                if (rebuiltDir.getChildCount() > 0) {
+                    int safeIndex = Math.min(newFileIndex, rebuiltDir.getChildCount() - 1);
+                    jTree.setSelectionPath(new TreePath(((DefaultMutableTreeNode) rebuiltDir.getChildAt(safeIndex)).getPath()));
+                }
             }
         }
 
-        enclosingUIComponent.revalidate();
-        enclosingUIComponent.repaint();
+        jTree.revalidate();
+        jTree.repaint();
     }
 
     @SuppressWarnings("SpellCheckingInspection")

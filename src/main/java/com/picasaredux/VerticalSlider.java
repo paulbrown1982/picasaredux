@@ -15,7 +15,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         JPanel leftHandSide = new JPanel();
         leftHandSide.setLayout(new BorderLayout());
 
-        fileTree = new FileTree(leftHandSide);
+        fileTree = new FileTree();
         fileTree.setupActionListeners(this);
 
         JButton seeAll = new JButton("See All Images");
