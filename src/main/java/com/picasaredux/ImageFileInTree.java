@@ -4,14 +4,16 @@ import java.io.File;
 
 class ImageFileInTree extends FileInTree {
 
-    private final Long hash;
+    private Long hash;
 
     ImageFileInTree(File f) {
         super(f);
-        hash = getDigest(file);
     }
 
     protected Long getHash() {
+        if (hash == null) {
+            hash = getDigest(file);
+        }
         return hash;
     }
 }

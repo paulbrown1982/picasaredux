@@ -3,26 +3,27 @@ package com.picasaredux;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class DirectoryInTree extends FileInTree {
 
-    private final Map<Long, Map<Long, AtomicInteger>> duplicatesBySize;
+    private final Map<Long, Set<ImageFileInTree>> filesCollatedBySize;
     private Integer numberOfFilesBelowMe;
     private Long sizeOfFilesBelowMe;
     private Integer numberOfDuplicatesBelowMe;
     private List<ImageFileInTree> imagesBelowMe;
     private List<DirectoryInTree> foldersBelowMe;
 
-    DirectoryInTree(File f, final Map<Long, Map<Long, AtomicInteger>> _duplicatesBySize) {
+    DirectoryInTree(File f, final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize) {
         super(f);
 
-        duplicatesBySize = _duplicatesBySize;
+        filesCollatedBySize = _filesCollatedBySize;
 
         flushDescendants();
     }
@@ -69,7 +70,7 @@ class DirectoryInTree extends FileInTree {
         if (files != null) {
             return Stream.of(files).sorted().map(file -> {
                 if (isUsefulDirectory(file)) {
-                    return new DirectoryInTree(file, duplicatesBySize);
+                    return new DirectoryInTree(file, filesCollatedBySize);
                 } else if (isImage(file)) {
                     return new ImageFileInTree(file);
                 } else {
@@ -110,11 +111,8 @@ class DirectoryInTree extends FileInTree {
 
     @SuppressWarnings("SpellCheckingInspection")
     boolean imageIsDuplicate(ImageFileInTree ifit) {
-        Map<Long, AtomicInteger> duplicatesByHash = duplicatesBySize.get(ifit.fileSize);
-        if (duplicatesByHash == null) {
-            return false;
-        }
-        return duplicatesByHash.getOrDefault(ifit.getHash(), new AtomicInteger(0)).get() > 0;
+        Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.get(ifit.fileSize);
+        return filesWithSameSize != null && filesWithSameSize.size() > 1;
     }
 
 
@@ -148,21 +146,18 @@ class DirectoryInTree extends FileInTree {
         return fits.stream().map(this::getDuplicateCountOrDescendantDuplicateCounts).reduce(0, Integer::sum);
     }
 
-
     private Integer getDuplicateCountOrDescendantDuplicateCounts(FileInTree fit) {
         if (fit instanceof DirectoryInTree dit) {
             return dit.numberOfDuplicatesBelowMe;
         } else if (fit instanceof ImageFileInTree iit) {
-            Map<Long, AtomicInteger> duplicatesByHash = duplicatesBySize.computeIfAbsent(iit.fileSize, k -> new HashMap<>());
-            if (duplicatesByHash.containsKey(iit.getHash())) {
-                return duplicatesByHash.get(iit.getHash()).incrementAndGet();
-            } else {
-                duplicatesByHash.put(iit.getHash(), new AtomicInteger(0));
-                return 0;
+            Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.computeIfAbsent(iit.fileSize, _ -> new HashSet<>());
+            filesWithSameSize.add(iit);
+            if (filesWithSameSize.size() > 1) {
+                int numberOfHashes = filesWithSameSize.stream().map(ImageFileInTree::getHash).collect(Collectors.toSet()).size();
+                return numberOfHashes < filesWithSameSize.size() ? 1 : 0;
             }
-        } else {
-            return 0;
         }
+        return 0;
     }
 
 }
