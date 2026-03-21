@@ -1,19 +1,17 @@
 package com.picasaredux;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.zip.CRC32;
 
 abstract class FileInTree {
 
@@ -27,15 +25,8 @@ abstract class FileInTree {
 
     final static DateTimeFormatter yearDayDf = createDTF("yyyy-MM");
 
-    private static final MessageDigest messageDigest;
-
-    static {
-        try {
-            messageDigest = MessageDigest.getInstance("SHA-512");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("cannot initialize SHA-512 hash function", e);
-        }
-    }
+    private static final ThreadLocal<CRC32> CRC32_HASH = ThreadLocal.withInitial(CRC32::new);
+    private static final ThreadLocal<byte[]> DIGEST_BUFFER = ThreadLocal.withInitial(() -> new byte[256 * 1024]);
 
     final File file;
 
@@ -52,12 +43,18 @@ abstract class FileInTree {
         });
     }
 
-    static String getDigest(File f) {
+    static Long getDigest(File f) {
         try {
-            FileInputStream fi = new FileInputStream(f);
-            byte[] fileData = fi.readAllBytes();
-            fi.close();
-            return new BigInteger(1, messageDigest.digest(fileData)).toString(16);
+            CRC32 crc32 = CRC32_HASH.get();
+            crc32.reset();
+            try (InputStream fi = Files.newInputStream(f.toPath())) {
+                byte[] buffer = DIGEST_BUFFER.get();
+                int read;
+                while ((read = fi.read(buffer)) != -1) {
+                    crc32.update(buffer, 0, read);
+                }
+            }
+            return crc32.getValue();
         } catch (IOException e) {
             throw new RuntimeException("cannot read file " + f.getAbsolutePath(), e);
         }
