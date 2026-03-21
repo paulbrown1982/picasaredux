@@ -30,7 +30,7 @@ abstract class FileInTree {
 
     final File file;
 
-    Long fileSize = 0L;
+    long fileSize = 0L;
 
     private String creationTime;
 
@@ -64,7 +64,7 @@ abstract class FileInTree {
         return DateTimeFormatter.ofPattern(pattern).withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
     }
 
-    protected static String bytesPrinter(Long bytes) {
+    protected static String bytesPrinter(long bytes) {
         return String.format("%,d", Math.round(bytes / 100000f)) + " MB";
     }
 
@@ -108,20 +108,20 @@ abstract class FileInTree {
         if (o == null || getClass() != o.getClass()) return false;
 
         FileInTree that = (FileInTree) o;
-        return file.equals(that.file) && fileSize.equals(that.fileSize) && creationTime.equals(that.creationTime);
+        return file.equals(that.file) && fileSize == that.fileSize && creationTime.equals(that.creationTime);
     }
 
     @Override
     public int hashCode() {
         int result = file.hashCode();
-        result = 31 * result + fileSize.hashCode();
+        result = 31 * result + Long.hashCode(fileSize);
         result = 31 * result + creationTime.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        if (creationTime != null && fileSize != null) {
+        if (creationTime != null) {
             return file.getName() + " [" + creationTime + "; " + bytesPrinter(fileSize) + "]";
         } else {
             return file.getName();
