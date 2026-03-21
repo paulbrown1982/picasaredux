@@ -43,7 +43,7 @@ abstract class FileInTree {
         });
     }
 
-    static Long getDigest(File f) {
+    static long getDigest(File f) {
         try {
             CRC32 crc32 = CRC32_HASH.get();
             crc32.reset();

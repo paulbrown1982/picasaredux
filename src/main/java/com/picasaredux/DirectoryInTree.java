@@ -13,9 +13,9 @@ import java.util.stream.Stream;
 class DirectoryInTree extends FileInTree {
 
     private final Map<Long, Set<ImageFileInTree>> filesCollatedBySize;
-    private Integer numberOfFilesBelowMe;
-    private Long sizeOfFilesBelowMe;
-    private Integer numberOfDuplicatesBelowMe;
+    private int numberOfFilesBelowMe;
+    private long sizeOfFilesBelowMe;
+    private int numberOfDuplicatesBelowMe;
     private List<ImageFileInTree> imagesBelowMe;
     private List<DirectoryInTree> foldersBelowMe;
 
@@ -115,11 +115,11 @@ class DirectoryInTree extends FileInTree {
     }
 
 
-    private Long getDescendantFileSize(List<? extends FileInTree> fits) {
-        return fits.parallelStream().map(this::getFileSizeOrDescendantFileSizes).reduce(0L, Long::sum);
+    private long getDescendantFileSize(List<? extends FileInTree> fits) {
+        return fits.parallelStream().mapToLong(this::getFileSizeOrDescendantFileSizes).sum();
     }
 
-    private Long getFileSizeOrDescendantFileSizes(FileInTree fit) {
+    private long getFileSizeOrDescendantFileSizes(FileInTree fit) {
         if (fit instanceof DirectoryInTree dit) {
             return dit.sizeOfFilesBelowMe;
         } else {
@@ -127,11 +127,11 @@ class DirectoryInTree extends FileInTree {
         }
     }
 
-    private Integer getDescendantFileCount(List<? extends FileInTree> fits) {
-        return fits.parallelStream().map(this::getFileCountOrDescendantFileCount).reduce(0, Integer::sum);
+    private int getDescendantFileCount(List<? extends FileInTree> fits) {
+        return fits.parallelStream().mapToInt(this::getFileCountOrDescendantFileCount).sum();
     }
 
-    private Integer getFileCountOrDescendantFileCount(FileInTree fit) {
+    private int getFileCountOrDescendantFileCount(FileInTree fit) {
         if (fit instanceof DirectoryInTree dit) {
             return dit.numberOfFilesBelowMe;
         } else if (fit instanceof ImageFileInTree) {
