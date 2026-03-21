@@ -65,7 +65,7 @@ class FileTree {
     private DefaultTreeModel build(String albumFolder) {
         File albumRoot = new File(albumFolder);
         if (!albumRoot.isDirectory()) return new DefaultTreeModel(new DefaultMutableTreeNode());
-        FileInTree albumRootFIT = new DirectoryInTree(albumRoot, HashMap.newHashMap(0));
+        FileInTree albumRootFIT = new DirectoryInTree(albumRoot, new HashMap<>());
         return new DefaultTreeModel(this.buildFromFIT(albumRootFIT, false), true);
     }
 
