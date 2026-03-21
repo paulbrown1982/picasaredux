@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class DirectoryInTree extends FileInTree {
@@ -62,7 +61,7 @@ class DirectoryInTree extends FileInTree {
         foldersBelowMe = extractChildFolders(children);
         sizeOfFilesBelowMe = getDescendantFileSize(children);
         numberOfFilesBelowMe = getDescendantFileCount(children);
-        numberOfDuplicatesBelowMe = getDescendantDuplicateCounts(children);
+        numberOfDuplicatesBelowMe = countDescendantDuplicates(children);
     }
 
     private List<? extends FileInTree> getDescendants() {
@@ -142,19 +141,19 @@ class DirectoryInTree extends FileInTree {
         }
     }
 
-    private Integer getDescendantDuplicateCounts(List<? extends FileInTree> fits) {
-        return fits.stream().map(this::getDuplicateCountOrDescendantDuplicateCounts).reduce(0, Integer::sum);
+    private int countDescendantDuplicates(List<? extends FileInTree> fits) {
+        return fits.stream().mapToInt(this::duplicateCountFor).sum();
     }
 
-    private Integer getDuplicateCountOrDescendantDuplicateCounts(FileInTree fit) {
+    private int duplicateCountFor(FileInTree fit) {
         if (fit instanceof DirectoryInTree dit) {
             return dit.numberOfDuplicatesBelowMe;
         } else if (fit instanceof ImageFileInTree iit) {
             Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.computeIfAbsent(iit.fileSize, _ -> new HashSet<>());
             filesWithSameSize.add(iit);
             if (filesWithSameSize.size() > 1) {
-                int numberOfHashes = filesWithSameSize.stream().map(ImageFileInTree::getHash).collect(Collectors.toSet()).size();
-                return numberOfHashes < filesWithSameSize.size() ? 1 : 0;
+                long distinctHashes = filesWithSameSize.stream().map(ImageFileInTree::getHash).distinct().count();
+                return distinctHashes < filesWithSameSize.size() ? 1 : 0;
             }
         }
         return 0;
