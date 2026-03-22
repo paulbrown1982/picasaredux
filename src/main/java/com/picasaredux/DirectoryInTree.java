@@ -108,7 +108,6 @@ class DirectoryInTree extends FileInTree {
         return imagesBelowMe;
     }
 
-    @SuppressWarnings("SpellCheckingInspection")
     boolean imageIsDuplicate(ImageFileInTree ifit) {
         Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.get(ifit.fileSize);
         return filesWithSameSize != null && filesWithSameSize.size() > 1;

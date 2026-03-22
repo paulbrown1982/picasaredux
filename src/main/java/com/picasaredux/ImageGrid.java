@@ -2,44 +2,58 @@ package com.picasaredux;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
+
+import static com.picasaredux.Thumbnail.CLIENT_PROPERTY;
 
 class ImageGrid extends UnderlyingSwingComponent {
 
-    private final JList<Thumbnail> jList;
+    private final JPanel gridPanel;
+    private final FileTree fileTree;
 
     private Dimension thumbnailSize;
-
     private List<Thumbnail> thumbnails;
 
     ImageGrid(FileTree ft) {
-
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-
+        fileTree = ft;
         thumbnailSize = new Dimension(160, 128);
-
-        jList = new JList<>();
-        jList.setLayout(new BorderLayout());
-        jList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-        jList.setCellRenderer((JList<? extends Thumbnail> list, Thumbnail value, int index, boolean isSelected, boolean cellHasFocus) -> value.getComponent());
-        jList.addListSelectionListener(l -> ft.selectFileInCurrentFolder(jList.getSelectedValue().getFIT()));
-
-        panel.add(jList, BorderLayout.CENTER);
-
-        setUnderlyingComponent(panel);
+        gridPanel = new JPanel(new WrapLayout(4, 4));
+        registerListeners();
+        setUnderlyingComponent(gridPanel);
     }
 
     void generateThumbnails(DirectoryInTree fit) {
-        thumbnails = fit.listChildImages(false).parallelStream().map(Thumbnail::new).toList();
+        thumbnails = fit.listChildImages(false).stream().map(this::generateThumbnail).toList();
         render();
     }
 
+    Thumbnail generateThumbnail(ImageFileInTree ifit) {
+        Thumbnail thumbnail = new Thumbnail(ifit);
+        gridPanel.add(thumbnail.getComponent());
+        return thumbnail;
+    }
+
+    private void registerListeners() {
+        gridPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Component c = gridPanel.getComponentAt(e.getPoint());
+                if (c instanceof JComponent jc) {
+                    Object fit = jc.getClientProperty(CLIENT_PROPERTY);
+                    if (fit instanceof FileInTree f) {
+                        fileTree.selectFileInCurrentFolder(f);
+                    }
+                }
+            }
+        });
+    }
+
     private void render() {
-        thumbnails.parallelStream().forEach(thumbnail -> thumbnail.resizeIcon(thumbnailSize));
-        jList.setListData(thumbnails.toArray(Thumbnail[]::new));
-        jList.setVisibleRowCount((int) Math.ceil(Math.sqrt(thumbnails.size())));
+        thumbnails.forEach(thumbnail -> thumbnail.resizeIcon(thumbnailSize));
+        gridPanel.revalidate();
+        gridPanel.repaint();
     }
 
     Dimension getThumbnailSize() {

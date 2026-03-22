@@ -8,25 +8,27 @@ import java.io.IOException;
 
 class Thumbnail extends UnderlyingSwingComponent {
 
+    static final String CLIENT_PROPERTY = "fit";
+
     private final JLabel label;
 
     private final BufferedImage image;
 
-    private final FileInTree fit;
-
     Thumbnail(FileInTree imageFIT) {
         label = new JLabel();
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        final FileInTree fit;
+
         try {
             image = ImageIO.read(imageFIT.getUnderlying());
             fit = imageFIT;
         } catch (IOException e) {
             throw new RuntimeException("Could not load \"" + imageFIT + "\". Reason: " + e.getMessage(), e);
         }
-        setUnderlyingComponent(label);
-    }
 
-    FileInTree getFIT() {
-        return fit;
+        label.putClientProperty(CLIENT_PROPERTY, fit);
+        setUnderlyingComponent(label);
     }
 
     void resizeIcon(Dimension newSize) {
