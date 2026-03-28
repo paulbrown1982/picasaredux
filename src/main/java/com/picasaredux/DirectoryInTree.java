@@ -95,7 +95,7 @@ class DirectoryInTree extends FileInTree {
 
     @Override
     public String toString() {
-        return file.getName() + " [" + String.format("%,d", numberOfFilesBelowMe) + " files; " + bytesPrinter(sizeOfFilesBelowMe) + "; " + numberOfDuplicatesBelowMe + " dupes]";
+        return file.getName() + " [" + String.format("%,d", numberOfFilesBelowMe) + " files; " + Utils.bytesPrinter(sizeOfFilesBelowMe) + "; " + numberOfDuplicatesBelowMe + " dupes]";
     }
 
     List<DirectoryInTree> listChildFolders(boolean flushCache) {

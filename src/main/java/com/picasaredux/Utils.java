@@ -1,0 +1,49 @@
+package com.picasaredux;
+
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.Optional;
+
+public final class Utils
+{
+    private static final DateTimeFormatter UK_DATE_FORMAT = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' h:mma")
+            .withLocale(Locale.UK)
+            .withZone(ZoneId.systemDefault());
+
+    private static final DecimalFormat ONE_DECIMAL = new DecimalFormat("0.0");
+    private static final DecimalFormat TWO_DECIMALS = new DecimalFormat("0.00");
+
+    static String ukDateFormat(Instant instant) {
+        return UK_DATE_FORMAT.format(instant);
+    }
+
+    static String bytesPrinter(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        if (bytes < 1024 * 1024) {
+            return ONE_DECIMAL.format((double) bytes / 1024d) + " KB";
+        }
+        if (bytes < 1024L * 1024L * 1024L) {
+            return ONE_DECIMAL.format((double) bytes / (1024d * 1024d)) + " MB";
+        }
+        return ONE_DECIMAL.format((double) bytes / (1024d * 1024d * 1024d)) + " GB";
+    }
+
+    static String oneDecimal(double number) {
+        return ONE_DECIMAL.format(number);
+    }
+
+    static String twoDecimals(double number) {
+        return TWO_DECIMALS.format(number);
+    }
+
+    static Optional<String> getFileExtension(String filename) {
+        return Optional.ofNullable(filename)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+}

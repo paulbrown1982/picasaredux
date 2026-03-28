@@ -64,10 +64,6 @@ abstract class FileInTree {
         return DateTimeFormatter.ofPattern(pattern).withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
     }
 
-    protected static String bytesPrinter(long bytes) {
-        return String.format("%,d", Math.round(bytes / 100000f)) + " MB";
-    }
-
     File getUnderlying() {
         return file;
     }
@@ -122,7 +118,7 @@ abstract class FileInTree {
     @Override
     public String toString() {
         if (creationTime != null) {
-            return file.getName() + " [" + creationTime + "; " + bytesPrinter(fileSize) + "]";
+            return file.getName() + " [" + creationTime + "; " + Utils.bytesPrinter(fileSize) + "]";
         } else {
             return file.getName();
         }

@@ -14,6 +14,8 @@ class ImageEditor extends UnderlyingSwingComponent {
     private final JButton showMetadata;
 
     private final EditableImage editableImage;
+    private final JLabel jLabel;
+
 
     ImageEditor(FileTree fileTree) {
 
@@ -50,9 +52,12 @@ class ImageEditor extends UnderlyingSwingComponent {
         buttons.add(saveButton);
         buttons.add(showMetadata);
 
+        jLabel = new JLabel();
+
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttons, BorderLayout.NORTH);
         panel.add(new JScrollPane(editableImage.getComponent()), BorderLayout.CENTER);
+        panel.add(jLabel, BorderLayout.EAST);
 
         setUnderlyingComponent(panel);
 
@@ -69,7 +74,7 @@ class ImageEditor extends UnderlyingSwingComponent {
             ImageFileInTree newSavedFile = editableImage.saveCopy();
             fileTree.rebuildAndSelect(newSavedFile);
         });
-        showMetadata.addActionListener(_ -> editableImage.showMetadata());
+        showMetadata.addActionListener(_ -> editableImage.showMetadata(jLabel));
     }
 
     void setImage(ImageFileInTree ifit) {

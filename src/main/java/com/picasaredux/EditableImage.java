@@ -1,11 +1,13 @@
 package com.picasaredux;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -19,12 +21,6 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
     private File originalImageFile;
     private int originalImageType;
     private int netRotationDegrees = 0;
-
-    private static Optional<String> getFileExtension(String filename) {
-        return Optional.ofNullable(filename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
-    }
 
     EditableImage() {
         canvas = new ImageCanvas(this);
@@ -96,9 +92,33 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         toggleActionPerformed("flipped");
     }
 
-    void showMetadata() {
-        float aspectRatio = (float) image.getWidth() / (float) image.getHeight();
-        System.out.println("Aspect ratio: " + aspectRatio);
+    void showMetadata(JLabel label) {
+        if (image == null || originalImageFile == null) {
+            label.setText("No image loaded");
+            return;
+        }
+
+        double width = image.getWidth();
+        double height = image.getHeight();
+        double aspectRatio = width / height;
+        double megapixels = (width * height) / 1_000_000d;
+        String format = Utils.getFileExtension(originalImageFile.getName()).orElse("Unknown");
+        long fileSizeBytes = originalImageFile.length();
+        String orientation = width == height ? "Square" : (width > height ? "Landscape" : "Portrait");
+        String modified = Utils.ukDateFormat(Instant.ofEpochMilli(originalImageFile.lastModified()));
+
+        label.setText("<html>"
+                + "<table border='1' cellspacing='0' cellpadding='4'>"
+                + "<th><td colpsan=\"2\"><b>Metadata</b></td></th>"
+                + "<tr><td>Dimensions:</td><td>" + image.getWidth() + " × " + image.getHeight() + " px</td></tr>"
+                + "<tr><td>Megapixels:</td><td>" + Utils.oneDecimal(megapixels) + " MP</td></tr>"
+                + "<tr><td>File size:</td><td>" + Utils.bytesPrinter(fileSizeBytes) + "</td></tr>"
+                + "<tr><td>Format:</td><td>" + format.toUpperCase() + "</td></tr>"
+                + "<tr><td>Orientation:</td><td>" + orientation + "</td></tr>"
+                + "<tr><td>Modified:</td><td>" + modified + "<</td></tr>"
+                + "<tr><td>Aspect ratio:</td><td>" + Utils.twoDecimals(aspectRatio) + "</td></tr>"
+                + "</table>"
+                + "</html>");
     }
 
     ImageFileInTree saveCopy() {
@@ -141,7 +161,7 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
     private String getFileToCopyInto() {
         String originalFilePath = originalImageFile.getAbsolutePath();
-        Optional<String> originalFileExtension = getFileExtension(originalImageFile.getName());
+        Optional<String> originalFileExtension = Utils.getFileExtension(originalImageFile.getName());
         if (originalFileExtension.isPresent()) {
             String fileExtension = "." + originalFileExtension.get();
             return originalFilePath.replace(fileExtension, generateActionsPerformedSummary() + fileExtension);
