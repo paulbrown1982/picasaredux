@@ -1,5 +1,8 @@
 package com.picasaredux;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -45,5 +48,18 @@ public final class Utils
         return Optional.ofNullable(filename)
                 .filter(f -> f.contains("."))
                 .map(f -> f.substring(filename.lastIndexOf(".") + 1));
+    }
+
+    static boolean isImage(File file) {
+        if (file.isDirectory()) return false;
+        if (file.getName().startsWith(".")) return false;
+
+        try {
+            String fileType = Files.probeContentType(file.toPath());
+            return (fileType != null && fileType.contains("image"));
+        } catch (IOException ioe) {
+            System.err.println("Error probing Content Type of file (" + file.getAbsolutePath() + "): " + ioe.getMessage());
+            return false;
+        }
     }
 }

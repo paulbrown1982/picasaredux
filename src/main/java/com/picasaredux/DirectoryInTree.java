@@ -1,8 +1,6 @@
 package com.picasaredux;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,19 +23,6 @@ class DirectoryInTree extends FileInTree {
         filesCollatedBySize = _filesCollatedBySize;
 
         flushDescendants();
-    }
-
-    protected static boolean isImage(File file) {
-        if (file.isDirectory()) return false;
-        if (file.getName().startsWith(".")) return false;
-
-        try {
-            String fileType = Files.probeContentType(file.toPath());
-            return (fileType != null && fileType.contains("image"));
-        } catch (IOException ioe) {
-            System.err.println("Error probing Content Type of file (" + file.getAbsolutePath() + "): " + ioe.getMessage());
-            return false;
-        }
     }
 
     static List<ImageFileInTree> extractChildImages(List<? extends FileInTree> children) {
@@ -70,7 +55,7 @@ class DirectoryInTree extends FileInTree {
             return Stream.of(files).sorted().map(file -> {
                 if (isUsefulDirectory(file)) {
                     return new DirectoryInTree(file, filesCollatedBySize);
-                } else if (isImage(file)) {
+                } else if (Utils.isImage(file)) {
                     return new ImageFileInTree(file);
                 } else {
                     return null;

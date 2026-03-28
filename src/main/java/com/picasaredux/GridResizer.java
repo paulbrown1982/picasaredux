@@ -4,9 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toCollection;
 
 class GridResizer extends UnderlyingSwingComponent {
 
@@ -103,7 +102,7 @@ class GridResizer extends UnderlyingSwingComponent {
         final float safeRatio = ratio == 0 ? 0 : (1 / ratio);
         return Stream.of(DIM_WIDTHS)
                 .map(w -> new Dimension(w, (int) (w * safeRatio)))
-                .collect(toCollection(ArrayList::new));
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private void setCurrentDimensionIndex(int i) {
