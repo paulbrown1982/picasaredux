@@ -1,16 +1,13 @@
 package com.picasaredux;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
@@ -92,33 +89,60 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         toggleActionPerformed("flipped");
     }
 
-    void showMetadata(JLabel label) {
+    String getMetadataHTML() {
         if (image == null || originalImageFile == null) {
-            label.setText("No image loaded");
-            return;
+            return "No image loaded";
         }
 
-        double width = image.getWidth();
-        double height = image.getHeight();
-        double aspectRatio = width / height;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        double aspectRatio = (double) width / (double) height;
         double megapixels = (width * height) / 1_000_000d;
         String format = Utils.getFileExtension(originalImageFile.getName()).orElse("Unknown");
         long fileSizeBytes = originalImageFile.length();
         String orientation = width == height ? "Square" : (width > height ? "Landscape" : "Portrait");
         String modified = Utils.ukDateFormat(Instant.ofEpochMilli(originalImageFile.lastModified()));
 
-        label.setText("<html>"
-                + "<table border='1' cellspacing='0' cellpadding='4'>"
-                + "<th><td colpsan=\"2\"><b>Metadata</b></td></th>"
-                + "<tr><td>Dimensions:</td><td>" + image.getWidth() + " × " + image.getHeight() + " px</td></tr>"
-                + "<tr><td>Megapixels:</td><td>" + Utils.oneDecimal(megapixels) + " MP</td></tr>"
-                + "<tr><td>File size:</td><td>" + Utils.bytesPrinter(fileSizeBytes) + "</td></tr>"
-                + "<tr><td>Format:</td><td>" + format.toUpperCase() + "</td></tr>"
-                + "<tr><td>Orientation:</td><td>" + orientation + "</td></tr>"
-                + "<tr><td>Modified:</td><td>" + modified + "<</td></tr>"
-                + "<tr><td>Aspect ratio:</td><td>" + Utils.twoDecimals(aspectRatio) + "</td></tr>"
-                + "</table>"
-                + "</html>");
+        ExifData.ExifMetadataSummary exif = ExifData.readExifMetadata(originalImageFile);
+
+        StringBuilder html = new StringBuilder("<html>");
+        html.append("<table border='1' cellspacing='0' cellpadding='4'>");
+        html.append("<tr><th colspan=\"2\"><b>File Metadata</b></th></tr>");
+        appendRow(html, "Aspect ratio", Utils.twoDecimals(aspectRatio) + " (" + Utils.reducedAspectRatio(width, height) + ")");
+        appendRow(html, "Color model", Utils.colorModelSummary(image.getColorModel()));
+        appendRow(html, "Dimensions", width + " × " + height + " px");
+        appendRow(html, "File size", Utils.bytesPrinter(fileSizeBytes) + " (" + fileSizeBytes + " bytes)");
+        appendRow(html, "Filename", originalImageFile.getName());
+        appendRow(html, "Format", format.toUpperCase(Locale.ROOT));
+        appendRow(html, "Has alpha", image.getColorModel().hasAlpha() ? "Yes" : "No");
+        appendRow(html, "Megapixels", Utils.oneDecimal(megapixels) + " MP");
+        appendRow(html, "Modified", modified);
+        appendRow(html, "Orientation", orientation);
+        appendRow(html, "Path", originalImageFile.getAbsolutePath());
+        appendRow(html, "Pixel type", Utils.imageTypeLabel(image.getType()));
+        appendRow(html, "Transforms", currentTransformSummary());
+        if (exif.error() != null) {
+            appendRow(html, "EXIF status", "Could not parse metadata: " + exif.error());
+        } else if (exif.hasAnyValues()) {
+            html.append("<tr><th colspan=\"2\"><b>EXIF Data</b></th></tr>");
+            appendRowIfPresent(html, "Aperture", exif.aperture());
+            appendRowIfPresent(html, "Camera", exif.camera());
+            appendRowIfPresent(html, "Color space", exif.colorSpace());
+            appendRowIfPresent(html, "Focal length", exif.focalLength());
+            appendRowIfPresent(html, "GPS", exif.gps());
+            appendRowIfPresent(html, "ICC profile", exif.iccProfile());
+            appendRowIfPresent(html, "ISO", exif.iso());
+            appendRowIfPresent(html, "Lens", exif.lens());
+            appendRowIfPresent(html, "Orientation", exif.orientation());
+            appendRowIfPresent(html, "Photo taken", Utils.exifToUkDateFormat(exif.dateTaken()));
+            appendRowIfPresent(html, "Shutter", exif.shutter());
+        } else {
+            appendRow(html, "EXIF", "No camera/location metadata found");
+        }
+
+        html.append("</table></html>");
+
+        return html.toString();
     }
 
     ImageFileInTree saveCopy() {
@@ -167,6 +191,45 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
             return originalFilePath.replace(fileExtension, generateActionsPerformedSummary() + fileExtension);
         } else {
             return originalFilePath + generateActionsPerformedSummary();
+        }
+    }
+
+    private String currentTransformSummary() {
+        List<String> transforms = new ArrayList<>();
+        if (netRotationDegrees != 0) {
+            int normalised = netRotationDegrees % 360;
+            normalised = normalised < 0 ? normalised + 360 : normalised;
+            transforms.add("Rotated " + normalised + "°");
+        }
+        if (actionsPerformed.contains("mirrored")) {
+            transforms.add("Mirrored");
+        }
+        if (actionsPerformed.contains("flipped")) {
+            transforms.add("Flipped");
+        }
+        return transforms.isEmpty() ? "None" : String.join(", ", transforms);
+    }
+
+    private static String escapeHtml(String value) {
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private static void appendRow(StringBuilder html, String key, String value) {
+        html.append("<tr><td>")
+                .append(escapeHtml(key))
+                .append(":</td><td>")
+                .append(escapeHtml(value))
+                .append("</td></tr>");
+    }
+
+    private static void appendRowIfPresent(StringBuilder html, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            appendRow(html, key, value);
         }
     }
 }

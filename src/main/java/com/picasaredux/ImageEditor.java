@@ -11,7 +11,7 @@ class ImageEditor extends UnderlyingSwingComponent {
     private final JButton mirror;
     private final JButton flip;
     private final JButton saveButton;
-    private final JButton showMetadata;
+    private final JToggleButton showMetadata;
 
     private final EditableImage editableImage;
     private final JLabel jLabel;
@@ -41,7 +41,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         saveButton = new JButton("💾");
         saveButton.setToolTipText("Save a copy of this image");
 
-        showMetadata = new JButton("M");
+        showMetadata = new JToggleButton("🏷️");
         showMetadata.setToolTipText("Show image metadata");
 
         buttons.add(fitToPanel);
@@ -53,6 +53,7 @@ class ImageEditor extends UnderlyingSwingComponent {
         buttons.add(showMetadata);
 
         jLabel = new JLabel();
+        jLabel.setVerticalAlignment(JLabel.TOP);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttons, BorderLayout.NORTH);
@@ -71,10 +72,11 @@ class ImageEditor extends UnderlyingSwingComponent {
         mirror.addActionListener(_ -> editableImage.mirror());
         flip.addActionListener(_ -> editableImage.flip());
         saveButton.addActionListener(_ -> {
-            ImageFileInTree newSavedFile = editableImage.saveCopy();
-            fileTree.rebuildAndSelect(newSavedFile);
+            fileTree.rebuildAndSelect(editableImage.saveCopy());
         });
-        showMetadata.addActionListener(_ -> editableImage.showMetadata(jLabel));
+        showMetadata.addActionListener(_ -> {
+            jLabel.setText(showMetadata.isSelected() ? editableImage.getMetadataHTML() : "");
+        });
     }
 
     void setImage(ImageFileInTree ifit) {
