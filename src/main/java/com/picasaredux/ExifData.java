@@ -12,13 +12,17 @@ import com.drew.metadata.icc.IccDirectory;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
+import java.util.Optional;
 
 import static com.drew.metadata.exif.ExifDirectoryBase.*;
 
-public class ExifData {
+class ExifData {
 
-    record ExifMetadataSummary(
+    record Summary(
             String dateTaken,
             String camera,
             String lens,
@@ -32,12 +36,33 @@ public class ExifData {
             String iccProfile,
             String error
     ) {
+
+        private static final DateTimeFormatter EXIF_DATE_FORMAT =
+                DateTimeFormatter.ofPattern("uuuu:MM:dd HH:mm:ss");
+
+        private static Optional<TemporalAccessor> parseExifDate(String raw) {
+            if (raw == null || raw.isBlank() || "0000:00:00 00:00:00".equals(raw)) {
+                return Optional.empty();
+            }
+            try {
+                return Optional.of(EXIF_DATE_FORMAT.parse(raw.trim()));
+            } catch (DateTimeParseException ignored) {
+                return Optional.empty();
+            }
+        }
+
+        String dateTakenUk() {
+            return parseExifDate(dateTaken)
+                    .map(Utils::ukDateFormat)
+                    .orElse("");
+        }
+
         boolean hasAnyValues() {
             return firstNonBlank(dateTaken, camera, lens, focalLength, aperture, shutter, iso, gps, orientation, colorSpace, iccProfile) != null;
         }
     }
 
-    static ExifMetadataSummary readExifMetadata(File imageFile) {
+    static Summary readExifMetadata(File imageFile) {
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(imageFile);
 
@@ -51,8 +76,8 @@ public class ExifData {
             String camera = joinWithSpace(" ", make, model);
 
             String dateTaken = firstNonBlank(
-                getDescription(subIfd, TAG_DATETIME_ORIGINAL),
-                getDescription(subIfd, TAG_DATETIME_DIGITIZED)
+                    getDescription(subIfd, TAG_DATETIME_ORIGINAL),
+                    getDescription(subIfd, TAG_DATETIME_DIGITIZED)
             );
 
             String gps = null;
@@ -63,7 +88,7 @@ public class ExifData {
                 }
             }
 
-            return new ExifMetadataSummary(
+            return new Summary(
                 dateTaken,
                 camera,
                 getDescription(subIfd, TAG_LENS_MODEL),
@@ -81,10 +106,9 @@ public class ExifData {
                 null
             );
         } catch (ImageProcessingException | IOException e) {
-            return new ExifMetadataSummary(null, null, null, null, null, null, null, null, null, null, null, e.getMessage());
+            return new Summary(null, null, null, null, null, null, null, null, null, null, null, e.getMessage());
         }
     }
-
 
     private static String getString(ExifIFD0Directory directory, int tag) {
         return directory == null ? null : Utils.trimToNull(directory.getString(tag));

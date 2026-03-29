@@ -6,7 +6,6 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
@@ -94,31 +93,23 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
             return "No image loaded";
         }
 
-        int width = image.getWidth();
-        int height = image.getHeight();
-        double aspectRatio = (double) width / (double) height;
-        double megapixels = (width * height) / 1_000_000d;
-        String format = Utils.getFileExtension(originalImageFile.getName()).orElse("Unknown");
-        long fileSizeBytes = originalImageFile.length();
-        String orientation = width == height ? "Square" : (width > height ? "Landscape" : "Portrait");
-        String modified = Utils.ukDateFormat(Instant.ofEpochMilli(originalImageFile.lastModified()));
-
-        ExifData.ExifMetadataSummary exif = ExifData.readExifMetadata(originalImageFile);
+        ImageMetadata.Summary ims = ImageMetadata.generateSummary(image, originalImageFile);
+        ExifData.Summary exif = ExifData.readExifMetadata(originalImageFile);
 
         StringBuilder html = new StringBuilder("<html>");
         html.append("<table border='1' cellspacing='0' cellpadding='4'>");
         html.append("<tr><th colspan=\"2\"><b>File Metadata</b></th></tr>");
-        appendRow(html, "Aspect ratio", Utils.twoDecimals(aspectRatio) + " (" + Utils.reducedAspectRatio(width, height) + ")");
-        appendRow(html, "Color model", Utils.colorModelSummary(image.getColorModel()));
-        appendRow(html, "Dimensions", width + " × " + height + " px");
-        appendRow(html, "File size", Utils.bytesPrinter(fileSizeBytes) + " (" + fileSizeBytes + " bytes)");
-        appendRow(html, "Filename", originalImageFile.getName());
-        appendRow(html, "Format", format.toUpperCase());
-        appendRow(html, "Has alpha", image.getColorModel().hasAlpha() ? "Yes" : "No");
-        appendRow(html, "Megapixels", Utils.oneDecimal(megapixels) + " MP");
-        appendRow(html, "Modified", modified);
-        appendRow(html, "Orientation", orientation);
-        appendRow(html, "Pixel type", Utils.imageTypeLabel(image.getType()));
+        appendRow(html, "Aspect ratio", ims.displayableAspectRatio());
+        appendRow(html, "Color model", ims.colourModelSummary());
+        appendRow(html, "Dimensions", ims.dimensions());
+        appendRow(html, "File size", ims.fileSizeSummary());
+        appendRow(html, "Filename", ims.fileName());
+        appendRow(html, "Format", ims.format().toUpperCase());
+        appendRow(html, "Has alpha", ims.colourModel().hasAlpha() ? "Yes" : "No");
+        appendRow(html, "Megapixels", ims.megapixelsSummary());
+        appendRow(html, "Modified", ims.modified());
+        appendRow(html, "Orientation", ims.orientation());
+        appendRow(html, "Pixel type", ims.imageTypeLabel());
         appendRow(html, "Transforms", currentTransformSummary());
         if (exif.error() != null) {
             appendRow(html, "EXIF status", "Could not parse metadata: " + exif.error());
@@ -133,7 +124,7 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
             appendRowIfPresent(html, "ISO", exif.iso());
             appendRowIfPresent(html, "Lens", exif.lens());
             appendRowIfPresent(html, "Orientation", exif.orientation());
-            appendRowIfPresent(html, "Photo taken", Utils.exifToUkDateFormat(exif.dateTaken()));
+            appendRowIfPresent(html, "Photo taken", exif.dateTakenUk());
             appendRowIfPresent(html, "Shutter", exif.shutter());
         } else {
             appendRow(html, "EXIF", "No camera/location metadata found");
