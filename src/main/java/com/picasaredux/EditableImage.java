@@ -113,12 +113,11 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         appendRow(html, "Dimensions", width + " × " + height + " px");
         appendRow(html, "File size", Utils.bytesPrinter(fileSizeBytes) + " (" + fileSizeBytes + " bytes)");
         appendRow(html, "Filename", originalImageFile.getName());
-        appendRow(html, "Format", format.toUpperCase(Locale.ROOT));
+        appendRow(html, "Format", format.toUpperCase());
         appendRow(html, "Has alpha", image.getColorModel().hasAlpha() ? "Yes" : "No");
         appendRow(html, "Megapixels", Utils.oneDecimal(megapixels) + " MP");
         appendRow(html, "Modified", modified);
         appendRow(html, "Orientation", orientation);
-        appendRow(html, "Path", originalImageFile.getAbsolutePath());
         appendRow(html, "Pixel type", Utils.imageTypeLabel(image.getType()));
         appendRow(html, "Transforms", currentTransformSummary());
         if (exif.error() != null) {
@@ -196,7 +195,7 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
     private String currentTransformSummary() {
         List<String> transforms = new ArrayList<>();
-        if (netRotationDegrees != 0) {
+        if (netRotationDegrees != 0 && netRotationDegrees != 360) {
             int normalised = netRotationDegrees % 360;
             normalised = normalised < 0 ? normalised + 360 : normalised;
             transforms.add("Rotated " + normalised + "°");

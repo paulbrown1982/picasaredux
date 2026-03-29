@@ -23,9 +23,6 @@ class ImageEditor extends UnderlyingSwingComponent {
 
         editableImage = new EditableImage();
 
-        fitToPanel = new JToggleButton("↔️");
-        fitToPanel.setToolTipText("Fit width instead of height");
-
         rotateClockwise = new JButton("⟳");
         rotateClockwise.setToolTipText("Rotate image clockwise");
 
@@ -41,23 +38,27 @@ class ImageEditor extends UnderlyingSwingComponent {
         saveButton = new JButton("💾");
         saveButton.setToolTipText("Save a copy of this image");
 
-        showMetadata = new JToggleButton("🏷️");
-        showMetadata.setToolTipText("Show image metadata");
+        fitToPanel = new JToggleButton("↔️");
+        fitToPanel.setToolTipText("Fit width instead of height");
 
-        buttons.add(fitToPanel);
+        showMetadata = new JToggleButton("🏷️");
+        showMetadata.setToolTipText("Show image EXIF and metadata");
+
         buttons.add(rotateClockwise);
         buttons.add(rotateAnticlockwise);
         buttons.add(mirror);
         buttons.add(flip);
         buttons.add(saveButton);
+        buttons.add(new JLabel("|"));
+        buttons.add(fitToPanel);
         buttons.add(showMetadata);
-
-        jLabel = new JLabel();
-        jLabel.setVerticalAlignment(JLabel.TOP);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttons, BorderLayout.NORTH);
         panel.add(new JScrollPane(editableImage.getComponent()), BorderLayout.CENTER);
+
+        jLabel = new JLabel();
+        jLabel.setVerticalAlignment(JLabel.TOP);
         panel.add(jLabel, BorderLayout.EAST);
 
         setUnderlyingComponent(panel);
@@ -66,16 +67,39 @@ class ImageEditor extends UnderlyingSwingComponent {
     }
 
     void setupActionListeners(FileTree fileTree) {
-        fitToPanel.addActionListener(_ -> editableImage.toggleRenderingMode(fitToPanel.isSelected()));
-        rotateClockwise.addActionListener(_ -> editableImage.rotateClockwise());
-        rotateAnticlockwise.addActionListener(_ -> editableImage.rotateAnticlockwise());
-        mirror.addActionListener(_ -> editableImage.mirror());
-        flip.addActionListener(_ -> editableImage.flip());
+        rotateClockwise.addActionListener(_ -> {
+            editableImage.rotateClockwise();
+            refreshChrome();
+        });
+        rotateAnticlockwise.addActionListener(_ -> {
+            editableImage.rotateAnticlockwise();
+            refreshChrome();
+        });
+        mirror.addActionListener(_ -> {
+            editableImage.mirror();
+            refreshChrome();
+        });
+        flip.addActionListener(_ -> {
+            editableImage.flip();
+            refreshChrome();
+        });
         saveButton.addActionListener(_ -> {
             fileTree.rebuildAndSelect(editableImage.saveCopy());
+            refreshChrome();
         });
+
+        // Toggleable buttons
+
+        fitToPanel.addActionListener(_ -> {
+            editableImage.toggleRenderingMode(fitToPanel.isSelected());
+        });
+
         showMetadata.addActionListener(_ -> {
-            jLabel.setText(showMetadata.isSelected() ? editableImage.getMetadataHTML() : "");
+            if (showMetadata.isSelected()) {
+                updateAndShowMetadata();
+            } else {
+                hideMetadata();
+            }
         });
     }
 
@@ -83,4 +107,20 @@ class ImageEditor extends UnderlyingSwingComponent {
         editableImage.setImage(ifit);
     }
 
+    private void updateAndShowMetadata() {
+        jLabel.setText(editableImage.getMetadataHTML());
+    }
+
+    private void hideMetadata() {
+        jLabel.setText("");
+    }
+
+    private void refreshChrome() {
+        if (fitToPanel.isSelected()) {
+            editableImage.toggleRenderingMode(false);
+        }
+        if (showMetadata.isSelected()) {
+            updateAndShowMetadata();
+        }
+    }
 }
