@@ -241,6 +241,18 @@ class FileTree {
         });
     }
 
+    private void collapseAllExcept(TreePath keepOpenPath) {
+        for (int row = jTree.getRowCount() - 1; row >= 0; row--) {
+            TreePath path = jTree.getPathForRow(row);
+            if (path == null || path.getPathCount() == 1 || keepOpenPath.equals(path) || keepOpenPath.isDescendant(path)) {
+                continue;
+            }
+            if (jTree.isExpanded(path)) {
+                jTree.collapsePath(path);
+            }
+        }
+    }
+
     private DefaultMutableTreeNode getCurrentSelectedNode() {
         return (DefaultMutableTreeNode) jTree.getLastSelectedPathComponent();
     }
