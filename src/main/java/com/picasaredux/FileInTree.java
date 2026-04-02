@@ -15,28 +15,31 @@ import java.util.zip.CRC32;
 
 abstract class FileInTree {
 
-    final static DateTimeFormatter shortDf = createDTF("dd MMM yy");
+    private static final DateTimeFormatter shortDf = createDTF("dd MMM yy");
 
-    final static DateTimeFormatter timeDf = createDTF("h:mma");
+    private static final DateTimeFormatter timeDf = createDTF("h:mma");
 
-    final static DateTimeFormatter dayTimeDf = createDTF("dd MMM, h:mm a");
+    private static final DateTimeFormatter dayTimeDf = createDTF("dd MMM, h:mm a");
 
-    final static DateTimeFormatter isoDf = createDTF("yyyy-MM-dd");
+    private static final DateTimeFormatter isoDf = createDTF("yyyy-MM-dd");
 
-    final static DateTimeFormatter yearDayDf = createDTF("yyyy-MM");
+    private static final DateTimeFormatter yearDayDf = createDTF("yyyy-MM");
 
     private static final ThreadLocal<CRC32> CRC32_HASH = ThreadLocal.withInitial(CRC32::new);
+
     private static final ThreadLocal<byte[]> DIGEST_BUFFER = ThreadLocal.withInitial(() -> new byte[256 * 1024]);
 
     final File file;
 
     long fileSize = 0L;
 
-    private String creationTime;
+    String creationTime;
 
+    final String fileName;
 
     FileInTree(File f) {
         file = f;
+        fileName = f.getName();
         getAttributes(file).ifPresent(attributes -> {
             fileSize = attributes.size();
             creationTime = establishCreationTime(attributes);
@@ -118,9 +121,9 @@ abstract class FileInTree {
     @Override
     public String toString() {
         if (creationTime != null) {
-            return file.getName() + " [" + creationTime + "; " + Utils.bytesPrinter(fileSize) + "]";
+            return fileName + " [" + creationTime + "; " + Utils.bytesPrinter(fileSize) + "]";
         } else {
-            return file.getName();
+            return fileName;
         }
     }
 }

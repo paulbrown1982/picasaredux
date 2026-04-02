@@ -66,7 +66,7 @@ class DirectoryInTree extends FileInTree {
     }
 
     private boolean isUsefulDirectory(File file) {
-        if (file.getName().startsWith(".")) return false;
+        if (fileName.startsWith(".")) return false;
         return file.isDirectory();
     }
 
@@ -80,7 +80,11 @@ class DirectoryInTree extends FileInTree {
 
     @Override
     public String toString() {
-        return file.getName() + " [" + String.format("%,d", numberOfFilesBelowMe) + " files; " + Utils.bytesPrinter(sizeOfFilesBelowMe) + "; " + numberOfDuplicatesBelowMe + " dupes]";
+        String details = String.format("%,d", numberOfFilesBelowMe) + " images; " + Utils.bytesPrinter(sizeOfFilesBelowMe);
+        if (numberOfDuplicatesBelowMe > 0) {
+            details += "; " + numberOfDuplicatesBelowMe + " dupes";
+        }
+        return fileName + " [" + details + "]";
     }
 
     List<DirectoryInTree> listChildFolders(boolean flushCache) {
