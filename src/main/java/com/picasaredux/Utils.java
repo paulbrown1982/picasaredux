@@ -16,6 +16,8 @@ final class Utils
             .withLocale(Locale.UK)
             .withZone(ZoneId.systemDefault());
 
+    private static final DecimalFormat ROUNDED = new DecimalFormat("0");
+
     private static final DecimalFormat ONE_DECIMAL = new DecimalFormat("0.0");
 
     static String ukDateFormat(TemporalAccessor ta) {
@@ -30,7 +32,7 @@ final class Utils
             return bytes + " B";
         }
         if (bytes < 1024 * 1024) {
-            return ONE_DECIMAL.format((double) bytes / 1024d) + " KB";
+            return ROUNDED.format((double) bytes / 1024d) + " KB";
         }
         if (bytes < 1024L * 1024L * 1024L) {
             return ONE_DECIMAL.format((double) bytes / (1024d * 1024d)) + " MB";
