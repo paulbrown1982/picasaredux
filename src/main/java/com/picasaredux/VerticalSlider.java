@@ -37,7 +37,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
             seeAll.setVisible(false);
         });
 
-        leftHandSide.add(fileTree.jTree, BorderLayout.CENTER);
+        JScrollPane treeScrollPane = new JScrollPane(fileTree.jTree);
+        leftHandSide.add(treeScrollPane, BorderLayout.CENTER);
 
         JPanel southPanel = new JPanel();
         southPanel.add(seeDuplicates);

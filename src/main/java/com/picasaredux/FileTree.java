@@ -62,6 +62,14 @@ class FileTree {
         return "";
     }
 
+    private static void togglePath(JTree tree, TreePath path) {
+        if (tree.isExpanded(path)) {
+            tree.collapsePath(path);
+        } else {
+            tree.expandPath(path);
+        }
+    }
+
     private DefaultTreeModel build(String albumFolder) {
         File albumRoot = new File(albumFolder);
         if (!albumRoot.isDirectory()) return new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -205,11 +213,7 @@ class FileTree {
             FileInTree fit = getFITForNode(dtm);
             if (fit != null) {
                 if (fit instanceof DirectoryInTree dit) {
-                    if (dit.listChildImages(false).isEmpty()) {
-                        jTree.expandPath(event.getPath());
-                    } else {
-                        jsp.showImageGallery(dit);
-                    }
+                    jsp.showImageGallery(dit);
                 } else if (fit instanceof ImageFileInTree ifit) {
                     jsp.showImageEditor(ifit);
                 }
@@ -229,28 +233,19 @@ class FileTree {
         jTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                JTree tree = (JTree) e.getSource();
+                TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    togglePath(tree, selPath);
+                }
                 if (SwingUtilities.isRightMouseButton(e)) {
                     if (Desktop.isDesktopSupported()) {
                         jsp.setToPreferredSize();
-                        JTree tree = (JTree) e.getSource();
-                        TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
                         openFileBySystemForTreePath(selPath);
                     }
                 }
             }
         });
-    }
-
-    private void collapseAllExcept(TreePath keepOpenPath) {
-        for (int row = jTree.getRowCount() - 1; row >= 0; row--) {
-            TreePath path = jTree.getPathForRow(row);
-            if (path == null || path.getPathCount() == 1 || keepOpenPath.equals(path) || keepOpenPath.isDescendant(path)) {
-                continue;
-            }
-            if (jTree.isExpanded(path)) {
-                jTree.collapsePath(path);
-            }
-        }
     }
 
     private DefaultMutableTreeNode getCurrentSelectedNode() {
