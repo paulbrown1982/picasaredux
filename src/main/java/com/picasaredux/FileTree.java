@@ -205,7 +205,11 @@ class FileTree {
             FileInTree fit = getFITForNode(dtm);
             if (fit != null) {
                 if (fit instanceof DirectoryInTree dit) {
-                    jsp.showImageGallery(dit);
+                    if (dit.listChildImages(false).isEmpty()) {
+                        jTree.expandPath(event.getPath());
+                    } else {
+                        jsp.showImageGallery(dit);
+                    }
                 } else if (fit instanceof ImageFileInTree ifit) {
                     jsp.showImageEditor(ifit);
                 }
