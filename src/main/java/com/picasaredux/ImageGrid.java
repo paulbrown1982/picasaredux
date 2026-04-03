@@ -56,7 +56,8 @@ class ImageGrid extends UnderlyingSwingComponent {
     }
 
     private void render() {
-        thumbnails.forEach(thumbnail -> thumbnail.resizeIcon(thumbnailSize));
+        thumbnails.parallelStream().forEach(thumbnail -> thumbnail.resizeImage(thumbnailSize));
+        thumbnails.forEach(thumbnail -> thumbnail.replaceIcon(thumbnailSize));
         gridPanel.revalidate();
         gridPanel.repaint();
     }
