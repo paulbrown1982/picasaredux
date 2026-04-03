@@ -10,16 +10,6 @@ class ImageFileInTree extends FileInTree {
 
     private Long hash;
 
-    private BufferedImage image;
-
-    private static BufferedImage parseImage(ImageFileInTree imageFIT) {
-        try {
-            return ImageIO.read(imageFIT.getUnderlying());
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load \"" + imageFIT + "\". Reason: " + e.getMessage(), e);
-        }
-    }
-
     ImageFileInTree(File f) {
         super(f);
     }
@@ -32,26 +22,45 @@ class ImageFileInTree extends FileInTree {
     }
 
     int getHeight() {
+        BufferedImage image = parseImage();
         if (image == null) return 0;
-        return image.getHeight();
+        int height = image.getHeight();
+        image.flush();
+        return height;
     }
 
     int getWidth() {
+        BufferedImage image = parseImage();
         if (image == null) return 0;
-        return image.getWidth();
+        int width = image.getWidth();
+        image.flush();
+        return width;
     }
 
     Image getScaledInstance(Dimension newSize) {
-        if (image == null) return null;
-        if (image.getWidth() == newSize.width && image.getHeight() == newSize.height) {
-            return image;
+        BufferedImage source = parseImage();
+        if (source == null) return null;
+        int targetWidth = Math.max(1, newSize.width);
+        int targetHeight = Math.max(1, newSize.height);
+        if (source.getWidth() == targetWidth && source.getHeight() == targetHeight) {
+            return source;
         }
-        return image.getScaledInstance(newSize.width, newSize.height, Image.SCALE_FAST);
+        BufferedImage scaled = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = scaled.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.drawImage(source, 0, 0, targetWidth, targetHeight, null);
+        graphics.dispose();
+        source.flush();
+        return scaled;
     }
 
-    void loadImage() {
-        if (image == null) {
-            this.image = parseImage(this);
+    private BufferedImage parseImage() {
+        try {
+            return ImageIO.read(getUnderlying());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load \"" + this + "\". Reason: " + e.getMessage(), e);
         }
     }
 

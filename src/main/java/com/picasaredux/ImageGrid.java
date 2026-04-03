@@ -25,11 +25,6 @@ class ImageGrid extends UnderlyingSwingComponent {
     }
 
     void generateThumbnails(DirectoryInTree fit) {
-        // Load images in parallel
-        fit.listChildImages(false)
-            .parallelStream()
-            .forEach(ImageFileInTree::loadImage);
-
         // Do Swing stuff in series
         thumbnails = fit.listChildImages(false).stream().map(Thumbnail::new).toList();
         thumbnails.forEach(this::addThumbnailToGridPanel);
