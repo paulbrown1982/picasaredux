@@ -18,8 +18,9 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
     private int originalImageType;
     private int netRotationDegrees = 0;
 
-    EditableImage() {
+    EditableImage(ImageFileInTree fileInTree) {
         canvas = new ImageCanvas(this);
+        setImage(fileInTree);
         setUnderlyingComponent(canvas);
     }
 
@@ -28,7 +29,7 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
         return image;
     }
 
-    void setImage(ImageFileInTree fileInTree) {
+    private void setImage(ImageFileInTree fileInTree) {
         originalImageFile = fileInTree.getUnderlying();
 
         try {

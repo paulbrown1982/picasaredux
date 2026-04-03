@@ -17,11 +17,11 @@ class ImageEditor extends UnderlyingSwingComponent {
     private final JLabel jLabel;
 
 
-    ImageEditor(FileTree fileTree) {
+    ImageEditor(FileTree fileTree, ImageFileInTree ifit) {
 
         JPanel buttons = new JPanel(new FlowLayout());
 
-        editableImage = new EditableImage();
+        editableImage = new EditableImage(ifit);
 
         rotateClockwise = new JButton("⟳");
         rotateClockwise.setToolTipText("Rotate image clockwise");
@@ -101,10 +101,6 @@ class ImageEditor extends UnderlyingSwingComponent {
                 hideMetadata();
             }
         });
-    }
-
-    void setImage(ImageFileInTree ifit) {
-        editableImage.setImage(ifit);
     }
 
     private void updateAndShowMetadata() {

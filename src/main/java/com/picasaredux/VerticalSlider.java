@@ -72,9 +72,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
         splitPane.setVisible(true);
     }
 
-    void showImageGallery(DirectoryInTree fit) {
-        ImageGallery imageGallery = new ImageGallery(fileTree);
-        imageGallery.showForDirectory(fit);
+    void showImageGallery(DirectoryInTree dit) {
+        ImageGallery imageGallery = new ImageGallery(fileTree, dit);
         rightHandSide.removeAll();
         rightHandSide.add(imageGallery.getComponent(), BorderLayout.CENTER);
         rightHandSide.revalidate();
@@ -82,8 +81,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void showImageEditor(ImageFileInTree fit) {
-        ImageEditor imageEditor = new ImageEditor(fileTree);
-        imageEditor.setImage(fit);
+        ImageEditor imageEditor = new ImageEditor(fileTree, fit);
         rightHandSide.removeAll();
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();
