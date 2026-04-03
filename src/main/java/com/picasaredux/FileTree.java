@@ -45,10 +45,12 @@ class FileTree {
     }
 
     private static void openFileBySystemForTreePath(TreePath selPath) {
-        try {
-            Desktop.getDesktop().open(new File(treePathToFilePath(selPath)));
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        if (Desktop.isDesktopSupported()) {
+            try {
+                Desktop.getDesktop().open(new File(treePathToFilePath(selPath)));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
@@ -224,7 +226,6 @@ class FileTree {
             @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == ' ' || e.getKeyChar() == '\n') {
-                    jsp.setToPreferredSize();
                     JTree tree = (JTree) e.getSource();
                     openFileBySystemForTreePath(tree.getSelectionPath());
                 }
@@ -239,10 +240,7 @@ class FileTree {
                     togglePath(tree, selPath);
                 }
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    if (Desktop.isDesktopSupported()) {
-                        jsp.setToPreferredSize();
-                        openFileBySystemForTreePath(selPath);
-                    }
+                    openFileBySystemForTreePath(selPath);
                 }
             }
         });
