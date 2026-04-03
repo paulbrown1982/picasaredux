@@ -10,9 +10,10 @@ class VerticalSlider extends UnderlyingSwingComponent {
     private final FileTree fileTree;
 
     private final JPanel rightHandSide;
+    private final JPanel leftHandSide;
 
     VerticalSlider() {
-        JPanel leftHandSide = new JPanel();
+        leftHandSide = new JPanel();
         leftHandSide.setLayout(new BorderLayout());
 
         fileTree = new FileTree();
@@ -55,9 +56,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void setToPreferredSize() {
-        splitPane.resetToPreferredSizes();
-        splitPane.repaint();
         splitPane.revalidate();
+        splitPane.setDividerLocation(leftHandSide.getPreferredSize().width + 4);
     }
 
     void hide() {
