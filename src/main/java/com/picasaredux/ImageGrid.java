@@ -32,11 +32,11 @@ class ImageGrid extends UnderlyingSwingComponent {
 
         // Do Swing stuff in series
         thumbnails = fit.listChildImages(false).stream().map(Thumbnail::new).toList();
-        thumbnails.forEach(this::addTumbnailToGridPanel);
+        thumbnails.forEach(this::addThumbnailToGridPanel);
         render();
     }
 
-    void addTumbnailToGridPanel(Thumbnail thumbnail) {
+    void addThumbnailToGridPanel(Thumbnail thumbnail) {
         gridPanel.add(thumbnail.getComponent());
     }
 
