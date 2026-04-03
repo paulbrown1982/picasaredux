@@ -22,7 +22,7 @@ class ImageFileInTree extends FileInTree {
     }
 
     int getHeight() {
-        BufferedImage image = parseImage();
+        BufferedImage image = loadImage();
         if (image == null) return 0;
         int height = image.getHeight();
         image.flush();
@@ -30,7 +30,7 @@ class ImageFileInTree extends FileInTree {
     }
 
     int getWidth() {
-        BufferedImage image = parseImage();
+        BufferedImage image = loadImage();
         if (image == null) return 0;
         int width = image.getWidth();
         image.flush();
@@ -38,7 +38,7 @@ class ImageFileInTree extends FileInTree {
     }
 
     Image getScaledInstance(Dimension newSize) {
-        BufferedImage source = parseImage();
+        BufferedImage source = loadImage();
         if (source == null) return null;
         int targetWidth = Math.max(1, newSize.width);
         int targetHeight = Math.max(1, newSize.height);
@@ -48,7 +48,7 @@ class ImageFileInTree extends FileInTree {
         BufferedImage scaled = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = scaled.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.drawImage(source, 0, 0, targetWidth, targetHeight, null);
         graphics.dispose();
@@ -56,7 +56,7 @@ class ImageFileInTree extends FileInTree {
         return scaled;
     }
 
-    private BufferedImage parseImage() {
+    private BufferedImage loadImage() {
         try {
             return ImageIO.read(getUnderlying());
         } catch (IOException e) {
