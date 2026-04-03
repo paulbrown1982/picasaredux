@@ -25,14 +25,19 @@ class ImageGrid extends UnderlyingSwingComponent {
     }
 
     void generateThumbnails(DirectoryInTree fit) {
-        thumbnails = fit.listChildImages(false).stream().map(this::generateThumbnail).toList();
+        // Load images in parallel
+        fit.listChildImages(false)
+            .parallelStream()
+            .forEach(ImageFileInTree::loadImage);
+
+        // Do Swing stuff in series
+        thumbnails = fit.listChildImages(false).stream().map(Thumbnail::new).toList();
+        thumbnails.forEach(this::addTumbnailToGridPanel);
         render();
     }
 
-    Thumbnail generateThumbnail(ImageFileInTree ifit) {
-        Thumbnail thumbnail = new Thumbnail(ifit);
+    void addTumbnailToGridPanel(Thumbnail thumbnail) {
         gridPanel.add(thumbnail.getComponent());
-        return thumbnail;
     }
 
     private void registerListeners() {

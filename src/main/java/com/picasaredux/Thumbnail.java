@@ -1,10 +1,7 @@
 package com.picasaredux;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 
 class Thumbnail extends UnderlyingSwingComponent {
 
@@ -12,22 +9,13 @@ class Thumbnail extends UnderlyingSwingComponent {
 
     private final JLabel label;
 
-    private final BufferedImage image;
+    private final ImageFileInTree image;
 
-    Thumbnail(FileInTree imageFIT) {
+    Thumbnail(ImageFileInTree imageFIT) {
         label = new JLabel();
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        final FileInTree fit;
-
-        try {
-            image = ImageIO.read(imageFIT.getUnderlying());
-            fit = imageFIT;
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load \"" + imageFIT + "\". Reason: " + e.getMessage(), e);
-        }
-
-        label.putClientProperty(CLIENT_PROPERTY, fit);
+        image = imageFIT;
+        label.putClientProperty(CLIENT_PROPERTY, imageFIT);
         setUnderlyingComponent(label);
     }
 
@@ -36,7 +24,7 @@ class Thumbnail extends UnderlyingSwingComponent {
             float imageRatio = (float) image.getHeight() / image.getWidth();
             newSize = new Dimension(newSize.width, (int) (newSize.width * imageRatio));
         }
-        label.setIcon(new ImageIcon(image.getScaledInstance(newSize.width, newSize.height, Image.SCALE_FAST)));
+        label.setIcon(new ImageIcon(image.getScaledInstance(newSize)));
         label.setPreferredSize(new Dimension(newSize.width + 1, newSize.height + 1));
     }
 
