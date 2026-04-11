@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -113,6 +114,38 @@ class DirectoryInTreeTest {
         assertEquals(2, directory.listChildImages(true).size());
     }
 
+    @Test
+    void hashIsNotComputedWhenNoFileSizesCollide() throws IOException {
+        Path root = Files.createDirectory(tempDir.resolve("album"));
+        writePng(root.resolve("first.png"));
+        writeDifferentLengthPng(root.resolve("second.png"));
+
+        AtomicInteger hashCalls = new AtomicInteger();
+        new DirectoryInTree(root.toFile(), new HashMap<>(), image -> {
+            hashCalls.incrementAndGet();
+            return image.getHash();
+        });
+
+        assertEquals(0, hashCalls.get());
+    }
+
+    @Test
+    void hashIsComputedWhenTwoFilesShareTheSameSize() throws IOException {
+        Path root = Files.createDirectory(tempDir.resolve("album"));
+        Path first = root.resolve("first.png");
+        Path second = root.resolve("second.png");
+        writePng(first);
+        Files.copy(first, second);
+
+        AtomicInteger hashCalls = new AtomicInteger();
+        new DirectoryInTree(root.toFile(), new HashMap<>(), image -> {
+            hashCalls.incrementAndGet();
+            return image.getHash();
+        });
+
+        assertEquals(2, hashCalls.get());
+    }
+
     private static void writePng(Path path) throws IOException {
         Files.write(path, ONE_PIXEL_PNG);
     }
@@ -121,5 +154,12 @@ class DirectoryInTreeTest {
         byte[] different = ONE_PIXEL_PNG.clone();
         different[different.length - 1] = 0;
         Files.write(path, different);
+    }
+
+    private static void writeDifferentLengthPng(Path path) throws IOException {
+        byte[] differentLength = new byte[ONE_PIXEL_PNG.length + 1];
+        System.arraycopy(ONE_PIXEL_PNG, 0, differentLength, 0, ONE_PIXEL_PNG.length);
+        differentLength[differentLength.length - 1] = 1;
+        Files.write(path, differentLength);
     }
 }

@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
 public class DirectoryInTree extends FileInTree {
 
     private final Map<Long, Set<ImageFileInTree>> filesCollatedBySize;
+    private final ToLongFunction<ImageFileInTree> hashProvider;
     private int numberOfFilesBelowMe;
     private long sizeOfFilesBelowMe;
     private int numberOfDuplicatesBelowMe;
@@ -18,9 +20,14 @@ public class DirectoryInTree extends FileInTree {
     private List<DirectoryInTree> foldersBelowMe;
 
     DirectoryInTree(File f, final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize) {
+        this(f, _filesCollatedBySize, ImageFileInTree::getHash);
+    }
+
+    DirectoryInTree(File f, final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize, ToLongFunction<ImageFileInTree> _hashProvider) {
         super(f);
 
         filesCollatedBySize = _filesCollatedBySize;
+        hashProvider = _hashProvider;
 
         flushDescendants();
     }
@@ -54,7 +61,7 @@ public class DirectoryInTree extends FileInTree {
         if (files != null) {
             return Stream.of(files).sorted().map(file -> {
                 if (isUsefulDirectory(file)) {
-                    return new DirectoryInTree(file, filesCollatedBySize);
+                    return new DirectoryInTree(file, filesCollatedBySize, hashProvider);
                 } else if (Utils.isImage(file)) {
                     return new ImageFileInTree(file);
                 } else {
@@ -140,7 +147,7 @@ public class DirectoryInTree extends FileInTree {
             Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.computeIfAbsent(iit.fileSize, _ -> new HashSet<>());
             filesWithSameSize.add(iit);
             if (filesWithSameSize.size() > 1) {
-                long distinctHashes = filesWithSameSize.stream().map(ImageFileInTree::getHash).distinct().count();
+                long distinctHashes = filesWithSameSize.stream().mapToLong(hashProvider).distinct().count();
                 return distinctHashes < filesWithSameSize.size() ? 1 : 0;
             }
         }
