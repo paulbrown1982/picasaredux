@@ -15,18 +15,21 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.HashMap;
 
 class FileTree {
 
-    final JTree jTree;
-
+    private final JTree jTree;
+    private final FileTreeModel fileTreeModel;
     private DefaultTreeModel defaultModel;
-
-    private boolean duplicatesOnly = false;
 
     FileTree() {
         jTree = new JTree();
+        fileTreeModel = new FileTreeModel();
+        defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+    }
+
+    JTree getTree() {
+        return jTree;
     }
 
     private static boolean isDirectory(TreeNode node) {
@@ -72,53 +75,35 @@ class FileTree {
         }
     }
 
-    private DefaultTreeModel build(String albumFolder) {
-        File albumRoot = new File(albumFolder);
-        if (!albumRoot.isDirectory()) return new DefaultTreeModel(new DefaultMutableTreeNode());
-        FileInTree albumRootFIT = new DirectoryInTree(albumRoot, new HashMap<>());
-        return new DefaultTreeModel(this.buildFromFIT(albumRootFIT, false), true);
+    private static DefaultMutableTreeNode asSwingTree(FileTreeModel.Node node) {
+        DefaultMutableTreeNode swingNode = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
+        node.children().stream().map(FileTree::asSwingTree).forEach(swingNode::add);
+        return swingNode;
     }
 
-    private DefaultMutableTreeNode buildFromFIT(FileInTree fit, boolean flushCache) {
-        DefaultMutableTreeNode ret = new DefaultMutableTreeNode(fit);
-        if (fit instanceof DirectoryInTree dit) {
-            ret.setAllowsChildren(true);
-
-            // Folders go on top
-            dit.listChildFolders(flushCache).stream().filter(directoryInTree -> {
-                if (duplicatesOnly) {
-                    return directoryInTree.containsDuplicateFiles();
-                } else {
-                    return directoryInTree.isNotEmpty();
-                }
-            }).map(ft -> buildFromFIT(ft, flushCache)).forEach(ret::add);
-
-            dit.listChildImages(flushCache).stream().filter(imageFileInTree -> {
-                if (duplicatesOnly) {
-                    return dit.imageIsDuplicate(imageFileInTree);
-                } else {
-                    return true;
-                }
-            }).map(ft -> buildFromFIT(ft, flushCache)).forEach(ret::add);
-
+    private void refreshTreeFromModel() {
+        FileTreeModel.Node root = fileTreeModel.getRoot();
+        if (root == null) {
+            defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         } else {
-            ret.setAllowsChildren(false);
+            defaultModel = new DefaultTreeModel(asSwingTree(root), true);
         }
-        return ret;
-    }
-
-    void setAlbum(String _albumFolder) {
-        defaultModel = build(_albumFolder);
         jTree.setModel(defaultModel);
     }
 
+    void setAlbum(String _albumFolder) {
+        fileTreeModel.setAlbum(_albumFolder);
+        refreshTreeFromModel();
+    }
+
     void showDuplicatesOnly(boolean show) {
-        duplicatesOnly = show;
-        rebuildFromRoot();
+        fileTreeModel.setShowDuplicatesOnly(show);
+        refreshTreeFromModel();
     }
 
     void rebuildFromRoot() {
-        rebuildFrom((DefaultMutableTreeNode) defaultModel.getRoot());
+        fileTreeModel.rebuildFromRoot();
+        refreshTreeFromModel();
     }
 
     void rebuildAndSelect(ImageFileInTree fileToOpen) {
@@ -162,41 +147,6 @@ class FileTree {
         return false;
     }
 
-    void rebuildFrom(DefaultMutableTreeNode fileToRebuild) {
-        DefaultMutableTreeNode dirToRebuild;
-        int newFileIndex = 0;
-        if (fileToRebuild.isLeaf()) {
-            dirToRebuild = (DefaultMutableTreeNode) fileToRebuild.getParent();
-            // this will become the same as " copy.xyz" is lexicographically sooner than ".xyz"
-            newFileIndex = dirToRebuild.getIndex(fileToRebuild);
-        } else {
-            dirToRebuild = fileToRebuild;
-        }
-
-        FileInTree fitAtDirToRebuild = getFITForNode(dirToRebuild);
-
-        if (fitAtDirToRebuild instanceof DirectoryInTree) {
-            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) dirToRebuild.getParent();
-
-            if (parent == null) {
-                setAlbum(fitAtDirToRebuild.getAbsoluteFilePath());
-            } else {
-                int removedNodeIndex = parent.getIndex(dirToRebuild);
-                DefaultMutableTreeNode rebuiltDir = buildFromFIT(fitAtDirToRebuild, true);
-                defaultModel.removeNodeFromParent(dirToRebuild);
-                defaultModel.insertNodeInto(rebuiltDir, parent, removedNodeIndex);
-                defaultModel.nodeStructureChanged(parent);
-                if (rebuiltDir.getChildCount() > 0) {
-                    int safeIndex = Math.min(newFileIndex, rebuiltDir.getChildCount() - 1);
-                    jTree.setSelectionPath(new TreePath(((DefaultMutableTreeNode) rebuiltDir.getChildAt(safeIndex)).getPath()));
-                }
-            }
-        }
-
-        jTree.revalidate();
-        jTree.repaint();
-    }
-
     void setupActionListeners(final VerticalSlider jsp) {
         jTree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override
@@ -236,6 +186,9 @@ class FileTree {
             public void mousePressed(MouseEvent e) {
                 JTree tree = (JTree) e.getSource();
                 TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+                if (selPath == null) {
+                    return;
+                }
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     togglePath(tree, selPath);
                 }
