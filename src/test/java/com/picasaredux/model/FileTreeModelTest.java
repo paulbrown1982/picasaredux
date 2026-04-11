@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -90,7 +90,7 @@ class FileTreeModelTest {
 
     private static void collectImageNames(FileTreeModel.Node node, List<String> names) {
         if (node.fileInTree() instanceof ImageFileInTree image) {
-            names.add(image.fileName);
+            names.add(image.getFileName());
         }
         node.children().forEach(child -> collectImageNames(child, names));
     }

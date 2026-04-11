@@ -1,13 +1,16 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-class FileTreeModel {
+public class FileTreeModel {
 
-    static final class Node {
+    public FileTreeModel() {
+    }
+
+    public static final class Node {
         private final FileInTree fileInTree;
         private final List<Node> children;
 
@@ -16,15 +19,15 @@ class FileTreeModel {
             this.children = List.copyOf(children);
         }
 
-        FileInTree fileInTree() {
+        public FileInTree fileInTree() {
             return fileInTree;
         }
 
-        List<Node> children() {
+        public List<Node> children() {
             return children;
         }
 
-        boolean isLeaf() {
+        public boolean isLeaf() {
             return children.isEmpty();
         }
     }
@@ -32,20 +35,20 @@ class FileTreeModel {
     private boolean duplicatesOnly = false;
     private Node root;
 
-    Node getRoot() {
+    public Node getRoot() {
         return root;
     }
 
-    void setAlbum(String albumFolder) {
+    public void setAlbum(String albumFolder) {
         root = build(albumFolder);
     }
 
-    void setShowDuplicatesOnly(boolean show) {
+    public void setShowDuplicatesOnly(boolean show) {
         duplicatesOnly = show;
         rebuildFromRoot();
     }
 
-    void rebuildFromRoot() {
+    public void rebuildFromRoot() {
         if (root == null) {
             return;
         }

@@ -1,4 +1,7 @@
-package com.picasaredux;
+package com.picasaredux.view;
+
+import com.picasaredux.model.DirectoryInTree;
+import com.picasaredux.model.FileInTree;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,7 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static com.picasaredux.Thumbnail.CLIENT_PROPERTY;
+import static com.picasaredux.view.Thumbnail.CLIENT_PROPERTY;
 
 class ImageGrid extends UnderlyingSwingComponent {
 

@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.view;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import java.io.File;
 import java.io.IOException;

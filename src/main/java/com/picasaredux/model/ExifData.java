@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -20,9 +20,9 @@ import java.util.Optional;
 
 import static com.drew.metadata.exif.ExifDirectoryBase.*;
 
-class ExifData {
+public class ExifData {
 
-    record Summary(
+    public record Summary(
             String dateTaken,
             String camera,
             String lens,
@@ -51,18 +51,18 @@ class ExifData {
             }
         }
 
-        String dateTakenUk() {
+        public String dateTakenUk() {
             return parseExifDate(dateTaken)
                     .map(Utils::ukDateFormat)
                     .orElse("");
         }
 
-        boolean hasAnyValues() {
+        public boolean hasAnyValues() {
             return firstNonBlank(dateTaken, camera, lens, focalLength, aperture, shutter, iso, gps, orientation, colorSpace, iccProfile) != null;
         }
     }
 
-    static Summary readExifMetadata(File imageFile) {
+    public static Summary readExifMetadata(File imageFile) {
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(imageFile);
 

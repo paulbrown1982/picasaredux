@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.view;
 
 import java.awt.image.BufferedImage;
 

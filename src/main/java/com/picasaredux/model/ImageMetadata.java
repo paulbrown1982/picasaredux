@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -8,7 +8,7 @@ import java.time.Instant;
 
 public class ImageMetadata {
 
-    record Summary(
+    public record Summary(
             String fileName,
             int width,
             int height,
@@ -39,21 +39,21 @@ public class ImageMetadata {
             return (width / gcd) + ":" + (height / gcd);
         }
 
-        String dimensions() {
+        public String dimensions() {
             return width() + " × " + height() + " px";
         }
 
-        String displayableAspectRatio() {
+        public String displayableAspectRatio() {
             return TWO_DECIMALS.format(aspectRatio) + " (" + reducedAspectRatio(width, height) + ")";
         }
 
-        String colourModelSummary() {
+        public String colourModelSummary() {
             return colourModel.getNumColorComponents() + " channels, "
                     + colourModel.getPixelSize() + "-bit, "
                     + (colourModel.hasAlpha() ? "with alpha" : "opaque");
         }
 
-        String imageTypeLabel() {
+        public String imageTypeLabel() {
             return switch (imageType) {
                 case BufferedImage.TYPE_3BYTE_BGR -> "TYPE_3BYTE_BGR";
                 case BufferedImage.TYPE_4BYTE_ABGR -> "TYPE_4BYTE_ABGR";
@@ -73,17 +73,17 @@ public class ImageMetadata {
             };
         }
 
-        String fileSizeSummary() {
+        public String fileSizeSummary() {
             return Utils.bytesPrinter(fileSizeBytes()) + " (" + fileSizeBytes() + " bytes)";
         }
 
-        String megapixelsSummary() {
+        public String megapixelsSummary() {
             return Utils.oneDecimal(megapixels()) + " MP";
         }
 
     }
 
-    static Summary generateSummary(BufferedImage image, File imageFile) {
+    public static Summary generateSummary(BufferedImage image, File imageFile) {
         String fileName = imageFile.getName();
         int width = image.getWidth();
         int height = image.getHeight();

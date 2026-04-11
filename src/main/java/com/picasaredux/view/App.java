@@ -1,11 +1,11 @@
-package com.picasaredux;
+package com.picasaredux.view;
 
 import javax.swing.*;
 import java.awt.*;
 
-class App {
+public class App {
 
-    App() {
+    public App() {
         JFrame frame = new JFrame("Picasa Redux");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);

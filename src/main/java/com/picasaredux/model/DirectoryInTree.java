@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import java.io.File;
 import java.util.HashSet;
@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-class DirectoryInTree extends FileInTree {
+public class DirectoryInTree extends FileInTree {
 
     private final Map<Long, Set<ImageFileInTree>> filesCollatedBySize;
     private int numberOfFilesBelowMe;
@@ -70,11 +70,11 @@ class DirectoryInTree extends FileInTree {
         return file.isDirectory();
     }
 
-    boolean isNotEmpty() {
+    public boolean isNotEmpty() {
         return !(foldersBelowMe.isEmpty() && imagesBelowMe.isEmpty());
     }
 
-    boolean containsDuplicateFiles() {
+    public boolean containsDuplicateFiles() {
         return numberOfDuplicatesBelowMe > 0;
     }
 
@@ -87,17 +87,17 @@ class DirectoryInTree extends FileInTree {
         return fileName + " [" + details + "]";
     }
 
-    List<DirectoryInTree> listChildFolders(boolean flushCache) {
+    public List<DirectoryInTree> listChildFolders(boolean flushCache) {
         if (flushCache) flushDescendants();
         return foldersBelowMe;
     }
 
-    List<ImageFileInTree> listChildImages(boolean flushCache) {
+    public List<ImageFileInTree> listChildImages(boolean flushCache) {
         if (flushCache) flushDescendants();
         return imagesBelowMe;
     }
 
-    boolean imageIsDuplicate(ImageFileInTree ifit) {
+    public boolean imageIsDuplicate(ImageFileInTree ifit) {
         Set<ImageFileInTree> filesWithSameSize = filesCollatedBySize.get(ifit.fileSize);
         return filesWithSameSize != null && filesWithSameSize.size() > 1;
     }

@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -6,11 +6,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-class ImageFileInTree extends FileInTree {
+public class ImageFileInTree extends FileInTree {
 
     private Long hash;
 
-    ImageFileInTree(File f) {
+    public ImageFileInTree(File f) {
         super(f);
     }
 
@@ -21,7 +21,7 @@ class ImageFileInTree extends FileInTree {
         return hash;
     }
 
-    int getHeight() {
+    public int getHeight() {
         BufferedImage image = loadImage();
         if (image == null) return 0;
         int height = image.getHeight();
@@ -29,7 +29,7 @@ class ImageFileInTree extends FileInTree {
         return height;
     }
 
-    int getWidth() {
+    public int getWidth() {
         BufferedImage image = loadImage();
         if (image == null) return 0;
         int width = image.getWidth();
@@ -37,7 +37,7 @@ class ImageFileInTree extends FileInTree {
         return width;
     }
 
-    Image getScaledInstance(Dimension newSize) {
+    public Image getScaledInstance(Dimension newSize) {
         BufferedImage source = loadImage();
         if (source == null) return null;
         int targetWidth = Math.max(1, newSize.width);

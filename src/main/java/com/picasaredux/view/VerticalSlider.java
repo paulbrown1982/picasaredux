@@ -1,4 +1,7 @@
-package com.picasaredux;
+package com.picasaredux.view;
+
+import com.picasaredux.model.DirectoryInTree;
+import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
 import java.awt.*;

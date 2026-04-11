@@ -1,4 +1,8 @@
-package com.picasaredux;
+package com.picasaredux.view;
+
+import com.picasaredux.model.ExifData;
+import com.picasaredux.model.ImageFileInTree;
+import com.picasaredux.model.ImageMetadata;
 
 import javax.imageio.ImageIO;
 import java.awt.geom.AffineTransform;
@@ -176,13 +180,19 @@ class EditableImage extends UnderlyingSwingComponent implements ImageProvider {
 
     private String getFileToCopyInto() {
         String originalFilePath = originalImageFile.getAbsolutePath();
-        Optional<String> originalFileExtension = Utils.getFileExtension(originalImageFile.getName());
+        Optional<String> originalFileExtension = getFileExtension(originalImageFile.getName());
         if (originalFileExtension.isPresent()) {
             String fileExtension = "." + originalFileExtension.get();
             return originalFilePath.replace(fileExtension, generateActionsPerformedSummary() + fileExtension);
         } else {
             return originalFilePath + generateActionsPerformedSummary();
         }
+    }
+
+    private static Optional<String> getFileExtension(String filename) {
+        return Optional.ofNullable(filename)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(filename.lastIndexOf(".") + 1));
     }
 
     private String currentTransformSummary() {

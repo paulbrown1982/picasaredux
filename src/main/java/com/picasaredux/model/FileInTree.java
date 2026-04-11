@@ -1,4 +1,4 @@
-package com.picasaredux;
+package com.picasaredux.model;
 
 import java.io.File;
 import java.io.InputStream;
@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.zip.CRC32;
 
-abstract class FileInTree {
+public abstract class FileInTree {
 
     private static final DateTimeFormatter shortDf = createDTF("dd MMM yy");
 
@@ -67,12 +67,16 @@ abstract class FileInTree {
         return DateTimeFormatter.ofPattern(pattern).withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
     }
 
-    File getUnderlying() {
+    public File getUnderlying() {
         return file;
     }
 
-    String getAbsoluteFilePath() {
+    public String getAbsoluteFilePath() {
         return file.getAbsolutePath();
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     @SuppressWarnings("SpellCheckingInspection")
