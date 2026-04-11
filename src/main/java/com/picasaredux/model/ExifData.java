@@ -65,30 +65,36 @@ public class ExifData {
     public static Summary readExifMetadata(File imageFile) {
         try {
             Metadata metadata = ImageMetadataReader.readMetadata(imageFile);
+            return readExifMetadata(metadata);
+        } catch (ImageProcessingException | IOException e) {
+            return new Summary(null, null, null, null, null, null, null, null, null, null, null, e.getMessage());
+        }
+    }
 
-            ExifIFD0Directory ifd0 = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-            ExifSubIFDDirectory subIfd = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-            GpsDirectory gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-            IccDirectory iccDirectory = metadata.getFirstDirectoryOfType(IccDirectory.class);
+    static Summary readExifMetadata(Metadata metadata) {
+        ExifIFD0Directory ifd0 = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+        ExifSubIFDDirectory subIfd = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+        GpsDirectory gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
+        IccDirectory iccDirectory = metadata.getFirstDirectoryOfType(IccDirectory.class);
 
-            String make = getString(ifd0, TAG_MAKE);
-            String model = getString(ifd0, TAG_MODEL);
-            String camera = joinWithSpace(" ", make, model);
+        String make = getString(ifd0, TAG_MAKE);
+        String model = getString(ifd0, TAG_MODEL);
+        String camera = joinWithSpace(make, model);
 
-            String dateTaken = firstNonBlank(
-                    getDescription(subIfd, TAG_DATETIME_ORIGINAL),
-                    getDescription(subIfd, TAG_DATETIME_DIGITIZED)
-            );
+        String dateTaken = firstNonBlank(
+                getDescription(subIfd, TAG_DATETIME_ORIGINAL),
+                getDescription(subIfd, TAG_DATETIME_DIGITIZED)
+        );
 
-            String gps = null;
-            if (gpsDirectory != null) {
-                GeoLocation location = gpsDirectory.getGeoLocation();
-                if (location != null && !location.isZero()) {
-                    gps = String.format(Locale.UK, "%.6f, %.6f", location.getLatitude(), location.getLongitude());
-                }
+        String gps = null;
+        if (gpsDirectory != null) {
+            GeoLocation location = gpsDirectory.getGeoLocation();
+            if (location != null && !location.isZero()) {
+                gps = String.format(Locale.UK, "%.6f, %.6f", location.getLatitude(), location.getLongitude());
             }
+        }
 
-            return new Summary(
+        return new Summary(
                 dateTaken,
                 camera,
                 getDescription(subIfd, TAG_LENS_MODEL),
@@ -104,10 +110,7 @@ public class ExifData {
                         getDescription(iccDirectory, IccDirectory.TAG_APPLE_MULTI_LANGUAGE_PROFILE_NAME)
                 ),
                 null
-            );
-        } catch (ImageProcessingException | IOException e) {
-            return new Summary(null, null, null, null, null, null, null, null, null, null, null, e.getMessage());
-        }
+        );
     }
 
     private static String getString(ExifIFD0Directory directory, int tag) {
