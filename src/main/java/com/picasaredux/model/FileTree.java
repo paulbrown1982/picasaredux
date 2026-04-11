@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class FileTreeModel {
+public class FileTree {
 
-    public FileTreeModel() {
+    public FileTree() {
     }
 
     public static final class Node {

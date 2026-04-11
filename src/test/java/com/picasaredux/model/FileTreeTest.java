@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class AlbumModelTest {
+class FileTreeTest {
 
     private static final byte[] ONE_PIXEL_PNG = new byte[] {
             (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
@@ -42,7 +42,7 @@ class AlbumModelTest {
         Files.copy(duplicateA, duplicateB);
         writeDifferentPng(unique);
 
-        FileTreeModel model = new FileTreeModel();
+        FileTree model = new FileTree();
         model.setAlbum(album.toString());
 
         List<String> allImages = collectImageNames(model.getRoot());
@@ -61,7 +61,7 @@ class AlbumModelTest {
 
         writePng(first);
 
-        FileTreeModel model = new FileTreeModel();
+        FileTree model = new FileTree();
         model.setAlbum(album.toString());
         assertEquals(List.of("first.png"), collectImageNames(model.getRoot()));
 
@@ -81,14 +81,14 @@ class AlbumModelTest {
         Files.write(path, differentLength);
     }
 
-    private static List<String> collectImageNames(FileTreeModel.Node root) {
+    private static List<String> collectImageNames(FileTree.Node root) {
         assertNotNull(root);
         List<String> names = new ArrayList<>();
         collectImageNames(root, names);
         return names.stream().sorted().toList();
     }
 
-    private static void collectImageNames(FileTreeModel.Node node, List<String> names) {
+    private static void collectImageNames(FileTree.Node node, List<String> names) {
         if (node.fileInTree() instanceof ImageFileInTree image) {
             names.add(image.getFileName());
         }

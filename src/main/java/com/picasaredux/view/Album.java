@@ -2,7 +2,7 @@ package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.model.FileInTree;
-import com.picasaredux.model.FileTreeModel;
+import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
@@ -24,12 +24,12 @@ import java.util.Enumeration;
 class Album {
 
     private final JTree jTree;
-    private final FileTreeModel fileTreeModel;
+    private final FileTree fileTree;
     private DefaultTreeModel defaultModel;
 
     Album() {
         jTree = new JTree();
-        fileTreeModel = new FileTreeModel();
+        fileTree = new FileTree();
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     }
 
@@ -80,14 +80,14 @@ class Album {
         }
     }
 
-    private static DefaultMutableTreeNode asSwingTree(FileTreeModel.Node node) {
+    private static DefaultMutableTreeNode asSwingTree(FileTree.Node node) {
         DefaultMutableTreeNode swingNode = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
         node.children().stream().map(Album::asSwingTree).forEach(swingNode::add);
         return swingNode;
     }
 
     private void refreshTreeFromModel() {
-        FileTreeModel.Node root = fileTreeModel.getRoot();
+        FileTree.Node root = fileTree.getRoot();
         if (root == null) {
             defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         } else {
@@ -97,17 +97,17 @@ class Album {
     }
 
     void setAlbum(String _albumFolder) {
-        fileTreeModel.setAlbum(_albumFolder);
+        fileTree.setAlbum(_albumFolder);
         refreshTreeFromModel();
     }
 
     void showDuplicatesOnly(boolean show) {
-        fileTreeModel.setShowDuplicatesOnly(show);
+        fileTree.setShowDuplicatesOnly(show);
         refreshTreeFromModel();
     }
 
     void rebuildFromRoot() {
-        fileTreeModel.rebuildFromRoot();
+        fileTree.rebuildFromRoot();
         refreshTreeFromModel();
     }
 
