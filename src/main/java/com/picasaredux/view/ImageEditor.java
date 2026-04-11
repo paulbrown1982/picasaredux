@@ -19,7 +19,7 @@ class ImageEditor extends UnderlyingSwingComponent {
     private final JLabel jLabel;
 
 
-    ImageEditor(FileTree fileTree, ImageFileInTree ifit) {
+    ImageEditor(Album album, ImageFileInTree ifit) {
 
         JPanel buttons = new JPanel(new FlowLayout());
 
@@ -65,10 +65,10 @@ class ImageEditor extends UnderlyingSwingComponent {
 
         setUnderlyingComponent(panel);
 
-        this.setupActionListeners(fileTree);
+        this.setupActionListeners(album);
     }
 
-    void setupActionListeners(FileTree fileTree) {
+    void setupActionListeners(Album album) {
         rotateClockwise.addActionListener(_ -> {
             editableImage.rotateClockwise();
             refreshChrome();
@@ -86,7 +86,7 @@ class ImageEditor extends UnderlyingSwingComponent {
             refreshChrome();
         });
         saveButton.addActionListener(_ -> {
-            fileTree.rebuildAndSelect(editableImage.saveCopy());
+            album.rebuildAndSelect(editableImage.saveCopy());
             refreshChrome();
         });
 

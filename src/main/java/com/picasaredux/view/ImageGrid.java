@@ -14,13 +14,13 @@ import static com.picasaredux.view.Thumbnail.CLIENT_PROPERTY;
 class ImageGrid extends UnderlyingSwingComponent {
 
     private final JPanel gridPanel;
-    private final FileTree fileTree;
+    private final Album album;
 
     private Dimension thumbnailSize;
     private List<Thumbnail> thumbnails;
 
-    ImageGrid(FileTree ft) {
-        fileTree = ft;
+    ImageGrid(Album ft) {
+        album = ft;
         thumbnailSize = new Dimension(160, 128);
         gridPanel = new JPanel(new WrapLayout(4, 4));
         registerListeners();
@@ -46,7 +46,7 @@ class ImageGrid extends UnderlyingSwingComponent {
                 if (c instanceof JComponent jc) {
                     Object fit = jc.getClientProperty(CLIENT_PROPERTY);
                     if (fit instanceof FileInTree f) {
-                        fileTree.selectFileInCurrentFolder(f);
+                        album.selectFileInCurrentFolder(f);
                     }
                 }
             }

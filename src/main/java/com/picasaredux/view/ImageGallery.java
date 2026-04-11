@@ -7,9 +7,9 @@ import java.awt.*;
 
 class ImageGallery extends UnderlyingSwingComponent {
 
-    ImageGallery(FileTree fileTree, DirectoryInTree dit) {
+    ImageGallery(Album album, DirectoryInTree dit) {
         JPanel panel = new JPanel(new BorderLayout());
-        ImageGrid imageGrid = new ImageGrid(fileTree);
+        ImageGrid imageGrid = new ImageGrid(album);
         imageGrid.generateThumbnails(dit);
         GridResizer gridResizer = new GridResizer(imageGrid);
         panel.add(new JScrollPane(imageGrid.getComponent()), BorderLayout.CENTER);

@@ -10,7 +10,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
     private final JSplitPane splitPane;
 
-    private final FileTree fileTree;
+    private final Album album;
 
     private final JPanel rightHandSide;
     private final JPanel leftHandSide;
@@ -19,8 +19,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
         leftHandSide = new JPanel();
         leftHandSide.setLayout(new BorderLayout());
 
-        fileTree = new FileTree();
-        fileTree.setupActionListeners(this);
+        album = new Album();
+        album.setupActionListeners(this);
 
         JButton seeAll = new JButton("See All Images");
         JButton seeDuplicates = new JButton("See Only Duplicates");
@@ -28,20 +28,20 @@ class VerticalSlider extends UnderlyingSwingComponent {
         seeAll.setVisible(false);
 
         seeDuplicates.addActionListener(_ -> {
-            fileTree.showDuplicatesOnly(true);
-            fileTree.expandAllNodes();
+            album.showDuplicatesOnly(true);
+            album.expandAllNodes();
             seeAll.setVisible(true);
             seeDuplicates.setVisible(false);
         });
 
         seeAll.addActionListener(_ -> {
-            fileTree.showDuplicatesOnly(false);
-            fileTree.collapseAllNodes();
+            album.showDuplicatesOnly(false);
+            album.collapseAllNodes();
             seeDuplicates.setVisible(true);
             seeAll.setVisible(false);
         });
 
-        JScrollPane treeScrollPane = new JScrollPane(fileTree.getTree());
+        JScrollPane treeScrollPane = new JScrollPane(album.getTree());
         leftHandSide.add(treeScrollPane, BorderLayout.CENTER);
 
         JPanel southPanel = new JPanel();
@@ -68,7 +68,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void setAlbum(String albumFolder) {
-        fileTree.setAlbum(albumFolder);
+        album.setAlbum(albumFolder);
     }
 
     void show() {
@@ -76,7 +76,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void showImageGallery(DirectoryInTree dit) {
-        ImageGallery imageGallery = new ImageGallery(fileTree, dit);
+        ImageGallery imageGallery = new ImageGallery(album, dit);
         rightHandSide.removeAll();
         rightHandSide.add(imageGallery.getComponent(), BorderLayout.CENTER);
         rightHandSide.revalidate();
@@ -84,7 +84,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void showImageEditor(ImageFileInTree fit) {
-        ImageEditor imageEditor = new ImageEditor(fileTree, fit);
+        ImageEditor imageEditor = new ImageEditor(album, fit);
         rightHandSide.removeAll();
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();

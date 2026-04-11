@@ -21,13 +21,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 
-class FileTree {
+class Album {
 
     private final JTree jTree;
     private final FileTreeModel fileTreeModel;
     private DefaultTreeModel defaultModel;
 
-    FileTree() {
+    Album() {
         jTree = new JTree();
         fileTreeModel = new FileTreeModel();
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -82,7 +82,7 @@ class FileTree {
 
     private static DefaultMutableTreeNode asSwingTree(FileTreeModel.Node node) {
         DefaultMutableTreeNode swingNode = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
-        node.children().stream().map(FileTree::asSwingTree).forEach(swingNode::add);
+        node.children().stream().map(Album::asSwingTree).forEach(swingNode::add);
         return swingNode;
     }
 
