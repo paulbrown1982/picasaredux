@@ -8,7 +8,10 @@ import java.io.IOException;
 
 public class ImageFileInTree extends FileInTree {
 
+    private static final FaceDetector FACE_DETECTOR = OpenCvFaceDetector.INSTANCE;
+
     private Long hash;
+    private Boolean containsFace;
 
     public ImageFileInTree(File f) {
         super(f);
@@ -19,6 +22,13 @@ public class ImageFileInTree extends FileInTree {
             hash = getDigest(file);
         }
         return hash;
+    }
+
+    boolean containsFace() {
+        if (containsFace == null) {
+            containsFace = FACE_DETECTOR.hasFace(file);
+        }
+        return containsFace;
     }
 
     public int getHeight() {

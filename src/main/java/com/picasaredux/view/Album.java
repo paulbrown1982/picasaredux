@@ -101,8 +101,8 @@ class Album {
         refreshTreeFromModel();
     }
 
-    void showDuplicatesOnly(boolean show) {
-        fileTree.setShowDuplicatesOnly(show);
+    void setFilterMode(FileTree.FilterMode filterMode) {
+        fileTree.setFilterMode(filterMode);
         refreshTreeFromModel();
     }
 

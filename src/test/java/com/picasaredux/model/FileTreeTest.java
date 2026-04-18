@@ -70,6 +70,25 @@ class FileTreeTest {
         assertEquals(List.of("first.png", "second.png"), collectImageNames(model.getRoot()));
     }
 
+    @Test
+    void showsOnlyFaceImagesWhenFaceFilterEnabled() throws IOException {
+        Path album = Files.createDirectory(tempDir.resolve("album"));
+        Path folder = Files.createDirectory(album.resolve("folder"));
+        Path faceImage = folder.resolve("face-01.png");
+        Path nonFaceImage = folder.resolve("landscape.png");
+        writePng(faceImage);
+        writePng(nonFaceImage);
+
+        FileTree model = new FileTree(
+                ImageFileInTree::getHash,
+                image -> image.getFileName().contains("face"));
+        model.setAlbum(album.toString());
+        assertEquals(List.of("face-01.png", "landscape.png"), collectImageNames(model.getRoot()));
+
+        model.setShowFacesOnly(true);
+        assertEquals(List.of("face-01.png"), collectImageNames(model.getRoot()));
+    }
+
     private static void writePng(Path path) throws IOException {
         Files.write(path, ONE_PIXEL_PNG);
     }

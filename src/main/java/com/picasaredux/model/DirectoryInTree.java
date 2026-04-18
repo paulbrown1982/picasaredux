@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
@@ -13,21 +14,31 @@ public class DirectoryInTree extends FileInTree {
 
     private final Map<Long, Set<ImageFileInTree>> filesCollatedBySize;
     private final ToLongFunction<ImageFileInTree> hashProvider;
+    private final Predicate<ImageFileInTree> faceProvider;
     private int numberOfFilesBelowMe;
     private long sizeOfFilesBelowMe;
     private int numberOfDuplicatesBelowMe;
+    private Integer numberOfFacesBelowMe;
     private List<ImageFileInTree> imagesBelowMe;
     private List<DirectoryInTree> foldersBelowMe;
 
     DirectoryInTree(File f, final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize) {
-        this(f, _filesCollatedBySize, ImageFileInTree::getHash);
+        this(f, _filesCollatedBySize, ImageFileInTree::getHash, ImageFileInTree::containsFace);
     }
 
     DirectoryInTree(File f, final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize, ToLongFunction<ImageFileInTree> _hashProvider) {
+        this(f, _filesCollatedBySize, _hashProvider, ImageFileInTree::containsFace);
+    }
+
+    DirectoryInTree(File f,
+                    final Map<Long, Set<ImageFileInTree>> _filesCollatedBySize,
+                    ToLongFunction<ImageFileInTree> _hashProvider,
+                    Predicate<ImageFileInTree> _faceProvider) {
         super(f);
 
         filesCollatedBySize = _filesCollatedBySize;
         hashProvider = _hashProvider;
+        faceProvider = _faceProvider;
 
         flushDescendants();
     }
@@ -54,6 +65,7 @@ public class DirectoryInTree extends FileInTree {
         sizeOfFilesBelowMe = getDescendantFileSize(children);
         numberOfFilesBelowMe = getDescendantFileCount(children);
         numberOfDuplicatesBelowMe = countDescendantDuplicates(children);
+        numberOfFacesBelowMe = null;
     }
 
     private List<? extends FileInTree> getDescendants() {
@@ -61,7 +73,7 @@ public class DirectoryInTree extends FileInTree {
         if (files != null) {
             return Stream.of(files).sorted().map(file -> {
                 if (isUsefulDirectory(file)) {
-                    return new DirectoryInTree(file, filesCollatedBySize, hashProvider);
+                    return new DirectoryInTree(file, filesCollatedBySize, hashProvider, faceProvider);
                 } else if (Utils.isImage(file)) {
                     return new ImageFileInTree(file);
                 } else {
@@ -83,6 +95,13 @@ public class DirectoryInTree extends FileInTree {
 
     public boolean containsDuplicateFiles() {
         return numberOfDuplicatesBelowMe > 0;
+    }
+
+    public boolean containsFaces() {
+        if (numberOfFacesBelowMe == null) {
+            numberOfFacesBelowMe = countDescendantFaces();
+        }
+        return numberOfFacesBelowMe > 0;
     }
 
     @Override
@@ -109,6 +128,9 @@ public class DirectoryInTree extends FileInTree {
         return filesWithSameSize != null && filesWithSameSize.size() > 1;
     }
 
+    public boolean imageContainsFace(ImageFileInTree ifit) {
+        return faceProvider.test(ifit);
+    }
 
     private long getDescendantFileSize(List<? extends FileInTree> fits) {
         return fits.parallelStream().mapToLong(this::getFileSizeOrDescendantFileSizes).sum();
@@ -138,6 +160,11 @@ public class DirectoryInTree extends FileInTree {
 
     private int countDescendantDuplicates(List<? extends FileInTree> fits) {
         return fits.stream().mapToInt(this::duplicateCountFor).sum();
+    }
+
+    private int countDescendantFaces() {
+        return imagesBelowMe.stream().mapToInt(image -> imageContainsFace(image) ? 1 : 0).sum() +
+                foldersBelowMe.stream().mapToInt(folder -> folder.containsFaces() ? 1 : 0).sum();
     }
 
     private int duplicateCountFor(FileInTree fit) {

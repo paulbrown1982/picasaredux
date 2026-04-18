@@ -1,12 +1,19 @@
 package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
+import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
 import java.awt.*;
 
 class VerticalSlider extends UnderlyingSwingComponent {
+
+    private enum ActiveFilter {
+        ALL,
+        DUPLICATES,
+        FACES
+    }
 
     private final JSplitPane splitPane;
 
@@ -22,33 +29,38 @@ class VerticalSlider extends UnderlyingSwingComponent {
         album = new Album();
         album.setupActionListeners(this);
 
-        JButton seeAll = new JButton("See All Images");
-        JButton seeDuplicates = new JButton("See Only Duplicates");
+        JButton seeAll = new JButton("All Images");
+        JButton seeDuplicates = new JButton("Only Duplicates");
+        JButton seeFaces = new JButton("Only Faces");
 
-        seeAll.setVisible(false);
-
-        seeDuplicates.addActionListener(_ -> {
-            album.showDuplicatesOnly(true);
-            album.expandAllNodes();
-            seeAll.setVisible(true);
-            seeDuplicates.setVisible(false);
-        });
+        updateFilterButtons(ActiveFilter.ALL, seeAll, seeDuplicates, seeFaces);
 
         seeAll.addActionListener(_ -> {
-            album.showDuplicatesOnly(false);
+            album.setFilterMode(FileTree.FilterMode.ALL);
             album.collapseAllNodes();
-            seeDuplicates.setVisible(true);
-            seeAll.setVisible(false);
+            updateFilterButtons(ActiveFilter.ALL, seeAll, seeDuplicates, seeFaces);
         });
 
-        JScrollPane treeScrollPane = new JScrollPane(album.getTree());
-        leftHandSide.add(treeScrollPane, BorderLayout.CENTER);
+        seeDuplicates.addActionListener(_ -> {
+            album.setFilterMode(FileTree.FilterMode.DUPLICATES);
+            album.expandAllNodes();
+            updateFilterButtons(ActiveFilter.DUPLICATES, seeAll, seeDuplicates, seeFaces);
+        });
 
-        JPanel southPanel = new JPanel();
-        southPanel.add(seeDuplicates);
-        southPanel.add(seeAll);
+        seeFaces.addActionListener(_ -> {
+            album.setFilterMode(FileTree.FilterMode.FACES);
+            album.expandAllNodes();
+            updateFilterButtons(ActiveFilter.FACES, seeAll, seeDuplicates, seeFaces);
+        });
 
-        leftHandSide.add(southPanel, BorderLayout.SOUTH);
+        JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterButtons.add(seeAll);
+        filterButtons.add(seeDuplicates);
+        filterButtons.add(seeFaces);
+        leftHandSide.add(filterButtons, BorderLayout.NORTH);
+
+        JScrollPane albumScrollPane = new JScrollPane(album.getTree());
+        leftHandSide.add(albumScrollPane, BorderLayout.CENTER);
 
         rightHandSide = new JPanel();
         rightHandSide.setLayout(new BorderLayout());
@@ -89,6 +101,18 @@ class VerticalSlider extends UnderlyingSwingComponent {
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();
         splitPane.repaint();
+    }
+
+    private void updateFilterButtons(ActiveFilter activeFilter,
+                                            JButton seeAll,
+                                            JButton seeDuplicates,
+                                            JButton seeFaces) {
+        seeAll.setSelected(false);
+        seeDuplicates.setSelected(false);
+        seeFaces.setSelected(false);
+        seeAll.setSelected(activeFilter == ActiveFilter.ALL);
+        seeDuplicates.setSelected(activeFilter == ActiveFilter.DUPLICATES);
+        seeFaces.setSelected(activeFilter == ActiveFilter.FACES);
     }
 
 }

@@ -1,0 +1,80 @@
+package com.picasaredux.model;
+
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.RectVector;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_COLOR;
+import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+import static org.bytedeco.opencv.global.opencv_imgproc.equalizeHist;
+
+final class OpenCvFaceDetector implements FaceDetector {
+
+    static final OpenCvFaceDetector INSTANCE = new OpenCvFaceDetector();
+
+    private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
+
+    private final ThreadLocal<CascadeClassifier> detector = ThreadLocal.withInitial(OpenCvFaceDetector::newClassifier);
+
+    private OpenCvFaceDetector() {
+    }
+
+    @Override
+    public boolean hasFace(java.io.File file) {
+        Mat color = imread(file.getAbsolutePath(), IMREAD_COLOR);
+        if (color == null || color.empty()) {
+            return false;
+        }
+
+        Mat grayscale = new Mat();
+        cvtColor(color, grayscale, COLOR_BGR2GRAY);
+        equalizeHist(grayscale, grayscale);
+
+        RectVector faces = new RectVector();
+        detector.get().detectMultiScale(grayscale, faces);
+        return faces.size() > 0;
+    }
+
+    private static CascadeClassifier newClassifier() {
+        URL cascadeResource = resolveCascadeResource();
+        if (cascadeResource == null) {
+            throw new IllegalStateException("Could not find OpenCV face cascade resource: " + CASCADE_FILE);
+        }
+
+        try {
+            Path cascadePath = Loader.cacheResource(cascadeResource).toPath();
+            CascadeClassifier classifier = new CascadeClassifier(cascadePath.toString());
+            if (classifier.empty()) {
+                throw new IllegalStateException("Could not load OpenCV face cascade classifier");
+            }
+            return classifier;
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not cache OpenCV face cascade resource", e);
+        }
+    }
+
+    private static URL resolveCascadeResource() {
+        String platform = Loader.getPlatform();
+        List<String> candidates = List.of(
+                "/org/bytedeco/opencv/" + platform + "/share/opencv4/haarcascades/" + CASCADE_FILE,
+                "/org/bytedeco/opencv/" + platform + "/share/opencv/haarcascades/" + CASCADE_FILE,
+                "/org/bytedeco/opencv/" + platform + "/share/OpenCV/haarcascades/" + CASCADE_FILE
+        );
+
+        for (String candidate : candidates) {
+            URL resource = OpenCvFaceDetector.class.getResource(candidate);
+            if (resource != null) {
+                return resource;
+            }
+        }
+        return null;
+    }
+}

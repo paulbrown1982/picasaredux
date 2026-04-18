@@ -146,6 +146,22 @@ class DirectoryInTreeTest {
         assertEquals(2, hashCalls.get());
     }
 
+    @Test
+    void containsFacesUsesFaceProviderAndRecursesIntoChildren() throws IOException {
+        Path root = Files.createDirectory(tempDir.resolve("album"));
+        Path nested = Files.createDirectory(root.resolve("nested"));
+        writePng(root.resolve("landscape.png"));
+        writePng(nested.resolve("face-shot.png"));
+
+        DirectoryInTree directory = new DirectoryInTree(
+                root.toFile(),
+                new HashMap<>(),
+                ImageFileInTree::getHash,
+                image -> image.getFileName().contains("face"));
+
+        assertTrue(directory.containsFaces());
+    }
+
     private static void writePng(Path path) throws IOException {
         Files.write(path, ONE_PIXEL_PNG);
     }
