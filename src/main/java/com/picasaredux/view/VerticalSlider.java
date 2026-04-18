@@ -29,28 +29,30 @@ class VerticalSlider extends UnderlyingSwingComponent {
         album = new Album();
         album.setupActionListeners(this);
 
-        JButton seeAll = new JButton("All Images");
-        JButton seeDuplicates = new JButton("Only Duplicates");
-        JButton seeFaces = new JButton("Only Faces");
+        JToggleButton seeAll = new JToggleButton("All Images");
+        JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
+        JToggleButton seeFaces = new JToggleButton("Only Faces");
 
-        updateFilterButtons(ActiveFilter.ALL, seeAll, seeDuplicates, seeFaces);
+        ButtonGroup filterGroup = new ButtonGroup();
+        filterGroup.add(seeAll);
+        filterGroup.add(seeDuplicates);
+        filterGroup.add(seeFaces);
+
+        seeAll.setSelected(true);
 
         seeAll.addActionListener(_ -> {
             album.setFilterMode(FileTree.FilterMode.ALL);
             album.collapseAllNodes();
-            updateFilterButtons(ActiveFilter.ALL, seeAll, seeDuplicates, seeFaces);
         });
 
         seeDuplicates.addActionListener(_ -> {
             album.setFilterMode(FileTree.FilterMode.DUPLICATES);
             album.expandAllNodes();
-            updateFilterButtons(ActiveFilter.DUPLICATES, seeAll, seeDuplicates, seeFaces);
         });
 
         seeFaces.addActionListener(_ -> {
             album.setFilterMode(FileTree.FilterMode.FACES);
             album.expandAllNodes();
-            updateFilterButtons(ActiveFilter.FACES, seeAll, seeDuplicates, seeFaces);
         });
 
         JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -101,18 +103,6 @@ class VerticalSlider extends UnderlyingSwingComponent {
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();
         splitPane.repaint();
-    }
-
-    private void updateFilterButtons(ActiveFilter activeFilter,
-                                            JButton seeAll,
-                                            JButton seeDuplicates,
-                                            JButton seeFaces) {
-        seeAll.setSelected(false);
-        seeDuplicates.setSelected(false);
-        seeFaces.setSelected(false);
-        seeAll.setSelected(activeFilter == ActiveFilter.ALL);
-        seeDuplicates.setSelected(activeFilter == ActiveFilter.DUPLICATES);
-        seeFaces.setSelected(activeFilter == ActiveFilter.FACES);
     }
 
 }
