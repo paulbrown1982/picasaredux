@@ -14,7 +14,6 @@ import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.zip.CRC32;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -105,74 +104,44 @@ class FileInTreeTest {
     }
 
     @Test
-    void establishCreationTime_usesDayTimeWhenGrandparentParentMatchesYearMonth() throws IOException {
+    void formatCreationTime_usesDayTimeWhenGrandparentParentMatchesYearMonth() {
         ZonedDateTime zdt = ZonedDateTime.of(2024, 3, 20, 9, 5, 0, 0, ZoneId.systemDefault());
         Instant instant = zdt.toInstant();
-        String ym = FileInTree.createDTF("yyyy-MM").format(instant);
-        Path file = tempDir.resolve(ym).resolve("day20").resolve("snap.jpg");
-        Files.createDirectories(file.getParent());
-        Files.createFile(file);
-
-        Assumptions.assumeTrue(setCreationTime(file, instant));
-
-        ImageFileInTree fit = new ImageFileInTree(file.toFile());
+        File parent = tempDir.resolve(FileInTree.createDTF("yyyy-MM").format(instant))
+                .resolve("day20")
+                .toFile();
         String expected = FileInTree.createDTF("dd MMM, h:mm a").format(instant);
 
-        assertEquals(expected, fit.creationTime);
+        assertEquals(expected, FileInTree.formatCreationTime(parent, instant));
     }
 
     @Test
-    void establishCreationTime_usesShortDateOtherwise() throws IOException {
+    void formatCreationTime_usesShortDateOtherwise() {
         ZonedDateTime zdt = ZonedDateTime.of(2023, 12, 25, 11, 0, 0, 0, ZoneId.systemDefault());
         Instant instant = zdt.toInstant();
-        Path file = tempDir.resolve("misc-album").resolve("pic.png");
-        Files.createDirectories(file.getParent());
-        Files.createFile(file);
-
-        Assumptions.assumeTrue(setCreationTime(file, instant));
-
-        ImageFileInTree fit = new ImageFileInTree(file.toFile());
+        File parent = tempDir.resolve("misc-album").toFile();
         String expected = FileInTree.createDTF("dd MMM yy").format(instant);
 
-        assertEquals(expected, fit.creationTime);
+        assertEquals(expected, FileInTree.formatCreationTime(parent, instant));
     }
 
     @Test
-    void getAttributes_viaReflection_returnsEmptyForMissingFile() throws Exception {
-        Path anchor = tempDir.resolve("anchor.txt");
-        Files.createFile(anchor);
-        ImageFileInTree probe = new ImageFileInTree(anchor.toFile());
-        File missing = tempDir.resolve("ghost").toFile();
+    void formatCreationTime_usesShortDateWhenNoParentAvailable() {
+        ZonedDateTime zdt = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());
+        Instant instant = zdt.toInstant();
+        String expected = FileInTree.createDTF("dd MMM yy").format(instant);
 
-        var method = FileInTree.class.getDeclaredMethod("getAttributes", File.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        Optional<BasicFileAttributes> attrs =
-                (Optional<BasicFileAttributes>) method.invoke(probe, missing);
-
-        assertTrue(attrs.isEmpty());
+        assertEquals(expected, FileInTree.formatCreationTime(null, instant));
     }
 
     @Test
-    void getAttributes_viaReflection_matchesFilesReadAttributes() throws Exception {
-        Path path = tempDir.resolve("direct-read.txt");
-        Files.writeString(path, "x");
-        Path anchor = tempDir.resolve("anchor2.txt");
-        Files.createFile(anchor);
-        ImageFileInTree probe = new ImageFileInTree(anchor.toFile());
+    void equalsAndHashCode_handleNullCreationTime() {
+        File missing = tempDir.resolve("missing").toFile();
+        ImageFileInTree left = new ImageFileInTree(missing);
+        ImageFileInTree right = new ImageFileInTree(missing);
 
-        var method = FileInTree.class.getDeclaredMethod("getAttributes", File.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        Optional<BasicFileAttributes> attrs =
-                (Optional<BasicFileAttributes>) method.invoke(probe, path.toFile());
-
-        assertTrue(attrs.isPresent());
-        BasicFileAttributes direct = Files.readAttributes(path, BasicFileAttributes.class);
-        assertEquals(direct.size(), attrs.get().size());
-        assertEquals(direct.creationTime(), attrs.get().creationTime());
+        assertEquals(left, right);
+        assertEquals(left.hashCode(), right.hashCode());
     }
 
     private static boolean setCreationTime(Path path, Instant instant) {

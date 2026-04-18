@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.zip.CRC32;
 
@@ -82,6 +83,9 @@ public abstract class FileInTree {
     @SuppressWarnings("SpellCheckingInspection")
     private Optional<BasicFileAttributes> getAttributes(File file) {
         BasicFileAttributeView bfav = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView.class);
+        if (bfav == null) {
+            return Optional.empty();
+        }
         BasicFileAttributes attributes = null;
         try {
             attributes = bfav.readAttributes();
@@ -93,17 +97,25 @@ public abstract class FileInTree {
 
     private String establishCreationTime(BasicFileAttributes attributes) {
         Instant fileCreationTime = attributes.creationTime().toInstant();
-        File parentFile = file.getParentFile();
-        String parentFileName = parentFile.getName();
-        String ct;
-        if (parentFileName.startsWith(isoDf.format(fileCreationTime))) {
-            ct = timeDf.format(fileCreationTime);
-        } else if ((parentFile.getParentFile().getName() + "-" + parentFileName).startsWith(yearDayDf.format(fileCreationTime))) {
-            ct = dayTimeDf.format(fileCreationTime);
-        } else {
-            ct = shortDf.format(fileCreationTime);
+        return formatCreationTime(file.getParentFile(), fileCreationTime);
+    }
+
+    static String formatCreationTime(File parentFile, Instant fileCreationTime) {
+        if (parentFile == null) {
+            return shortDf.format(fileCreationTime);
         }
-        return ct;
+        String parentFileName = parentFile.getName();
+        if (parentFileName.startsWith(isoDf.format(fileCreationTime))) {
+            return timeDf.format(fileCreationTime);
+        }
+
+        File grandParent = parentFile.getParentFile();
+        if (grandParent != null &&
+                (grandParent.getName() + "-" + parentFileName).startsWith(yearDayDf.format(fileCreationTime))) {
+            return dayTimeDf.format(fileCreationTime);
+        }
+
+        return shortDf.format(fileCreationTime);
     }
 
     @Override
@@ -111,14 +123,14 @@ public abstract class FileInTree {
         if (o == null || getClass() != o.getClass()) return false;
 
         FileInTree that = (FileInTree) o;
-        return file.equals(that.file) && fileSize == that.fileSize && creationTime.equals(that.creationTime);
+        return file.equals(that.file) && fileSize == that.fileSize && Objects.equals(creationTime, that.creationTime);
     }
 
     @Override
     public int hashCode() {
         int result = file.hashCode();
         result = 31 * result + Long.hashCode(fileSize);
-        result = 31 * result + creationTime.hashCode();
+        result = 31 * result + Objects.hashCode(creationTime);
         return result;
     }
 
