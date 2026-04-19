@@ -10,11 +10,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_COLOR;
+import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_GRAYSCALE;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.bytedeco.opencv.global.opencv_imgproc.equalizeHist;
 
 final class OpenCvFaceDetector implements FaceDetector {
 
@@ -29,14 +26,10 @@ final class OpenCvFaceDetector implements FaceDetector {
 
     @Override
     public boolean hasFace(java.io.File file) {
-        Mat color = imread(file.getAbsolutePath(), IMREAD_COLOR);
-        if (color == null || color.empty()) {
+        Mat grayscale = imread(file.getAbsolutePath(), IMREAD_GRAYSCALE);
+        if (grayscale == null || grayscale.empty()) {
             return false;
         }
-
-        Mat grayscale = new Mat();
-        cvtColor(color, grayscale, COLOR_BGR2GRAY);
-        equalizeHist(grayscale, grayscale);
 
         RectVector faces = new RectVector();
         detector.get().detectMultiScale(grayscale, faces);

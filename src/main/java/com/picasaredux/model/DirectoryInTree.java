@@ -163,8 +163,8 @@ public class DirectoryInTree extends FileInTree {
     }
 
     private int countDescendantFaces() {
-        return imagesBelowMe.stream().mapToInt(image -> imageContainsFace(image) ? 1 : 0).sum() +
-                foldersBelowMe.stream().mapToInt(folder -> folder.containsFaces() ? 1 : 0).sum();
+        return imagesBelowMe.parallelStream().mapToInt(image -> imageContainsFace(image) ? 1 : 0).sum() +
+                foldersBelowMe.parallelStream().mapToInt(folder -> folder.containsFaces() ? 1 : 0).sum();
     }
 
     private int duplicateCountFor(FileInTree fit) {
