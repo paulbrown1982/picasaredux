@@ -104,6 +104,13 @@ public class DirectoryInTree extends FileInTree {
         return numberOfFacesBelowMe > 0;
     }
 
+    public boolean containsImagesWithoutAnyFaces() {
+        if (numberOfFacesBelowMe == null) {
+            numberOfFacesBelowMe = countDescendantFaces();
+        }
+        return numberOfFilesBelowMe > 0 && numberOfFacesBelowMe < numberOfFilesBelowMe;
+    }
+
     @Override
     public String toString() {
         String details = String.format("%,d", numberOfFilesBelowMe) + " images; " + Utils.bytesPrinter(sizeOfFilesBelowMe);

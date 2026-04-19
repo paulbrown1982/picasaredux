@@ -9,12 +9,6 @@ import java.awt.*;
 
 class VerticalSlider extends UnderlyingSwingComponent {
 
-    private enum ActiveFilter {
-        ALL,
-        DUPLICATES,
-        FACES
-    }
-
     private final JSplitPane splitPane;
 
     private final Album album;
@@ -32,11 +26,13 @@ class VerticalSlider extends UnderlyingSwingComponent {
         JToggleButton seeAll = new JToggleButton("All Images");
         JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
         JToggleButton seeFaces = new JToggleButton("Only Faces");
+        JToggleButton seeNoFaces = new JToggleButton("No Faces");
 
         ButtonGroup filterGroup = new ButtonGroup();
         filterGroup.add(seeAll);
         filterGroup.add(seeDuplicates);
         filterGroup.add(seeFaces);
+        filterGroup.add(seeNoFaces);
 
         seeAll.setSelected(true);
 
@@ -55,10 +51,16 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
+        seeNoFaces.addActionListener(_ -> {
+            album.setFilterMode(FileTree.FilterMode.NO_FACES);
+            album.expandAllNodes();
+        });
+
         JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterButtons.add(seeAll);
         filterButtons.add(seeDuplicates);
         filterButtons.add(seeFaces);
+        filterButtons.add(seeNoFaces);
         leftHandSide.add(filterButtons, BorderLayout.NORTH);
 
         JScrollPane albumScrollPane = new JScrollPane(album.getTree());

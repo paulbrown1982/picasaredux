@@ -12,7 +12,8 @@ public class FileTree {
     public enum FilterMode {
         ALL,
         DUPLICATES,
-        FACES
+        FACES,
+        NO_FACES
     }
 
     private final ToLongFunction<ImageFileInTree> hashProvider;
@@ -114,6 +115,7 @@ public class FileTree {
             case ALL -> directoryInTree.isNotEmpty();
             case DUPLICATES -> directoryInTree.containsDuplicateFiles();
             case FACES -> directoryInTree.containsFaces();
+            case NO_FACES -> directoryInTree.containsImagesWithoutAnyFaces();
         };
     }
 
@@ -122,6 +124,7 @@ public class FileTree {
             case ALL -> true;
             case DUPLICATES -> directoryInTree.imageIsDuplicate(imageFileInTree);
             case FACES -> directoryInTree.imageContainsFace(imageFileInTree);
+            case NO_FACES -> !directoryInTree.imageContainsFace(imageFileInTree);
         };
     }
 }
