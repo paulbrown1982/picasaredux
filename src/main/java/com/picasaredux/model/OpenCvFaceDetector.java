@@ -13,19 +13,16 @@ import java.util.List;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_GRAYSCALE;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 
-final class OpenCvFaceDetector implements FaceDetector {
-
-    static final OpenCvFaceDetector INSTANCE = new OpenCvFaceDetector();
+final class OpenCvFaceDetector {
 
     private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
     private static final Path CASCADE_PATH = loadCascadePath();
 
     private final ThreadLocal<CascadeClassifier> detector = ThreadLocal.withInitial(OpenCvFaceDetector::newClassifier);
 
-    private OpenCvFaceDetector() {
+    public OpenCvFaceDetector() {
     }
 
-    @Override
     public boolean hasFace(java.io.File file) {
         Mat grayscale = imread(file.getAbsolutePath(), IMREAD_GRAYSCALE);
         if (grayscale == null || grayscale.empty()) {
