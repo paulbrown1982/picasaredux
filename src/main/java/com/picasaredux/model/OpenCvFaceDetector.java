@@ -18,6 +18,7 @@ final class OpenCvFaceDetector implements FaceDetector {
     static final OpenCvFaceDetector INSTANCE = new OpenCvFaceDetector();
 
     private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
+    private static final Path CASCADE_PATH = loadCascadePath();
 
     private final ThreadLocal<CascadeClassifier> detector = ThreadLocal.withInitial(OpenCvFaceDetector::newClassifier);
 
@@ -37,18 +38,21 @@ final class OpenCvFaceDetector implements FaceDetector {
     }
 
     private static CascadeClassifier newClassifier() {
+        CascadeClassifier classifier = new CascadeClassifier(CASCADE_PATH.toString());
+        if (classifier.empty()) {
+            throw new IllegalStateException("Could not load OpenCV face cascade classifier");
+        }
+        return classifier;
+    }
+
+    private static Path loadCascadePath() {
         URL cascadeResource = resolveCascadeResource();
         if (cascadeResource == null) {
             throw new IllegalStateException("Could not find OpenCV face cascade resource: " + CASCADE_FILE);
         }
 
         try {
-            Path cascadePath = Loader.cacheResource(cascadeResource).toPath();
-            CascadeClassifier classifier = new CascadeClassifier(cascadePath.toString());
-            if (classifier.empty()) {
-                throw new IllegalStateException("Could not load OpenCV face cascade classifier");
-            }
-            return classifier;
+            return Loader.cacheResource(cascadeResource).toPath();
         } catch (IOException e) {
             throw new IllegalStateException("Could not cache OpenCV face cascade resource", e);
         }
