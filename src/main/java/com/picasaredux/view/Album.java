@@ -19,18 +19,42 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Enumeration;
+import java.util.List;
 
 class Album {
 
+    public enum FilterMode {
+        ALL,
+        DUPLICATES,
+        FACES,
+        NO_FACES
+    }
+
     private final JTree jTree;
     private final FileTree fileTree;
+    private final EnumMap<FilterMode, FileTree.Node> filteredRoots;
     private DefaultTreeModel defaultModel;
+    private FileTree.Node baseRoot;
+    private FilterMode filterMode;
+
 
     Album() {
         jTree = new JTree();
         fileTree = new FileTree();
+        filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+        filterMode = FilterMode.ALL;
+    }
+
+    Album(FileTree fileTree) {
+        jTree = new JTree();
+        this.fileTree = fileTree;
+        filteredRoots = new EnumMap<>(FilterMode.class);
+        defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+        filterMode = FilterMode.ALL;
     }
 
     JTree getTree() {
@@ -87,7 +111,7 @@ class Album {
     }
 
     private void refreshTreeFromModel() {
-        FileTree.Node root = fileTree.getRoot();
+        FileTree.Node root = getFilteredRoot(filterMode);
         if (root == null) {
             defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         } else {
@@ -98,17 +122,78 @@ class Album {
 
     void setAlbum(String _albumFolder) {
         fileTree.setAlbum(_albumFolder);
+        resetFilteredRoots();
         refreshTreeFromModel();
     }
 
-    void setFilterMode(FileTree.FilterMode filterMode) {
-        fileTree.setFilterMode(filterMode);
+    void setFilterMode(FilterMode filterMode) {
+        this.filterMode = filterMode;
         refreshTreeFromModel();
     }
 
     void rebuildFromRoot() {
         fileTree.rebuildFromRoot();
+        resetFilteredRoots();
         refreshTreeFromModel();
+    }
+
+    private void resetFilteredRoots() {
+        baseRoot = fileTree.getRoot();
+        filteredRoots.clear();
+        if (baseRoot != null) {
+            filteredRoots.put(FilterMode.ALL, baseRoot);
+        }
+    }
+
+    private FileTree.Node getFilteredRoot(FilterMode mode) {
+        if (baseRoot == null) {
+            return null;
+        }
+        return filteredRoots.computeIfAbsent(mode, _ -> filterNode(baseRoot, mode));
+    }
+
+    private static FileTree.Node filterNode(FileTree.Node node, FilterMode mode) {
+        if (mode == FilterMode.ALL) {
+            return node;
+        }
+
+        if (!(node.fileInTree() instanceof DirectoryInTree parentDirectory)) {
+            return node;
+        }
+
+        List<FileTree.Node> filteredChildren = new ArrayList<>();
+        for (FileTree.Node child : node.children()) {
+            FileInTree childFit = child.fileInTree();
+            if (childFit instanceof DirectoryInTree childDirectory) {
+                if (includeDirectory(childDirectory, mode)) {
+                    filteredChildren.add(filterNode(child, mode));
+                }
+            } else if (childFit instanceof ImageFileInTree childImage) {
+                if (includeImage(parentDirectory, childImage, mode)) {
+                    filteredChildren.add(child);
+                }
+            }
+        }
+
+        return new FileTree.Node(node.fileInTree(), filteredChildren);
+    }
+
+    private static boolean includeDirectory(DirectoryInTree directoryInTree, FilterMode mode) {
+        return switch (mode) {
+            case ALL -> directoryInTree.isNotEmpty();
+            case DUPLICATES -> directoryInTree.containsDuplicateFiles();
+            case FACES -> directoryInTree.containsFaces();
+            case NO_FACES -> directoryInTree.containsImagesWithoutAnyFaces();
+        };
+    }
+
+    private static boolean includeImage(DirectoryInTree directoryInTree, ImageFileInTree imageFileInTree, FilterMode mode) {
+        return switch (mode) {
+            case ALL -> true;
+            case DUPLICATES -> directoryInTree.imageIsDuplicate(imageFileInTree);
+            case FACES -> directoryInTree.imageContainsFace(imageFileInTree);
+            case NO_FACES -> !directoryInTree.imageContainsFace(imageFileInTree);
+        };
     }
 
     void rebuildAndSelect(ImageFileInTree fileToOpen) {

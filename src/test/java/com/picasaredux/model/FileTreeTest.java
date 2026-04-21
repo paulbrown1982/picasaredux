@@ -30,30 +30,6 @@ class FileTreeTest {
     Path tempDir;
 
     @Test
-    void showsAllImagesByDefaultAndOnlyDuplicatesWhenEnabled() throws IOException {
-        Path album = Files.createDirectory(tempDir.resolve("album"));
-        Path folder = Files.createDirectory(album.resolve("folder"));
-
-        Path duplicateA = folder.resolve("dup-a.png");
-        Path duplicateB = folder.resolve("dup-b.png");
-        Path unique = folder.resolve("unique.png");
-
-        writePng(duplicateA);
-        Files.copy(duplicateA, duplicateB);
-        writeDifferentPng(unique);
-
-        FileTree model = new FileTree();
-        model.setAlbum(album.toString());
-
-        List<String> allImages = collectImageNames(model.getRoot());
-        assertEquals(List.of("dup-a.png", "dup-b.png", "unique.png"), allImages);
-
-        model.setShowDuplicatesOnly(true);
-        List<String> duplicateImages = collectImageNames(model.getRoot());
-        assertEquals(List.of("dup-a.png", "dup-b.png"), duplicateImages);
-    }
-
-    @Test
     void rebuildFromRootPicksUpNewFiles() throws IOException {
         Path album = Files.createDirectory(tempDir.resolve("album"));
         Path first = album.resolve("first.png");
@@ -70,34 +46,8 @@ class FileTreeTest {
         assertEquals(List.of("first.png", "second.png"), collectImageNames(model.getRoot()));
     }
 
-    @Test
-    void showsOnlyFaceImagesWhenFaceFilterEnabled() throws IOException {
-        Path album = Files.createDirectory(tempDir.resolve("album"));
-        Path folder = Files.createDirectory(album.resolve("folder"));
-        Path faceImage = folder.resolve("face-01.png");
-        Path nonFaceImage = folder.resolve("landscape.png");
-        writePng(faceImage);
-        writePng(nonFaceImage);
-
-        FileTree model = new FileTree(
-                ImageFileInTree::getHash,
-                image -> image.getFileName().contains("face"));
-        model.setAlbum(album.toString());
-        assertEquals(List.of("face-01.png", "landscape.png"), collectImageNames(model.getRoot()));
-
-        model.setShowFacesOnly(true);
-        assertEquals(List.of("face-01.png"), collectImageNames(model.getRoot()));
-    }
-
     private static void writePng(Path path) throws IOException {
         Files.write(path, ONE_PIXEL_PNG);
-    }
-
-    private static void writeDifferentPng(Path path) throws IOException {
-        byte[] differentLength = new byte[ONE_PIXEL_PNG.length + 1];
-        System.arraycopy(ONE_PIXEL_PNG, 0, differentLength, 0, ONE_PIXEL_PNG.length);
-        differentLength[differentLength.length - 1] = 1;
-        Files.write(path, differentLength);
     }
 
     private static List<String> collectImageNames(FileTree.Node root) {

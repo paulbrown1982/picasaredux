@@ -1,7 +1,6 @@
 package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
-import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
@@ -37,22 +36,22 @@ class VerticalSlider extends UnderlyingSwingComponent {
         seeAll.setSelected(true);
 
         seeAll.addActionListener(_ -> {
-            album.setFilterMode(FileTree.FilterMode.ALL);
+            album.setFilterMode(Album.FilterMode.ALL);
             album.collapseAllNodes();
         });
 
         seeDuplicates.addActionListener(_ -> {
-            album.setFilterMode(FileTree.FilterMode.DUPLICATES);
+            album.setFilterMode(Album.FilterMode.DUPLICATES);
             album.expandAllNodes();
         });
 
         seeFaces.addActionListener(_ -> {
-            album.setFilterMode(FileTree.FilterMode.FACES);
+            album.setFilterMode(Album.FilterMode.FACES);
             album.expandAllNodes();
         });
 
         seeNoFaces.addActionListener(_ -> {
-            album.setFilterMode(FileTree.FilterMode.NO_FACES);
+            album.setFilterMode(Album.FilterMode.NO_FACES);
             album.expandAllNodes();
         });
 

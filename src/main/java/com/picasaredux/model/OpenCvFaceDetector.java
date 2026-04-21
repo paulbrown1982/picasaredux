@@ -24,6 +24,7 @@ final class OpenCvFaceDetector {
     }
 
     public boolean hasFace(java.io.File file) {
+        System.out.print(".");
         Mat grayscale = imread(file.getAbsolutePath(), IMREAD_GRAYSCALE);
         if (grayscale == null || grayscale.empty()) {
             return false;
@@ -31,6 +32,7 @@ final class OpenCvFaceDetector {
 
         RectVector faces = new RectVector();
         detector.get().detectMultiScale(grayscale, faces);
+        System.out.print("_");
         return faces.size() > 0;
     }
 
