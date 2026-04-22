@@ -80,6 +80,10 @@ public abstract class FileInTree {
         return fileName;
     }
 
+    public long getFileSize() {
+        return fileSize;
+    }
+
     @SuppressWarnings("SpellCheckingInspection")
     private Optional<BasicFileAttributes> getAttributes(File file) {
         BasicFileAttributeView bfav = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView.class);
@@ -139,7 +143,7 @@ public abstract class FileInTree {
         if (creationTime != null) {
             return fileName + " [" + creationTime + "; " + Utils.bytesPrinter(fileSize) + "]";
         } else {
-            return fileName;
+            return file.getAbsolutePath();
         }
     }
 }

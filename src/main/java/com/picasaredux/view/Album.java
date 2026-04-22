@@ -4,12 +4,14 @@ import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.model.FileInTree;
 import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
+import com.picasaredux.model.Utils;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -47,6 +49,7 @@ class Album {
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
+        setupTreeCellRenderer();
     }
 
     Album(FileTree fileTree) {
@@ -55,10 +58,69 @@ class Album {
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
+        setupTreeCellRenderer();
     }
 
     JTree getTree() {
         return jTree;
+    }
+
+    private static final class CountsAndSize {
+        private int count;
+        private long size;
+    }
+
+    private static CountsAndSize calculateFilteredCountsAndSize(DefaultMutableTreeNode root) {
+        CountsAndSize result = new CountsAndSize();
+        calculateFilteredCountsAndSize(root, result);
+        return result;
+    }
+
+    private static void calculateFilteredCountsAndSize(DefaultMutableTreeNode node, CountsAndSize result) {
+        Object userObject = node.getUserObject();
+        if (userObject instanceof ImageFileInTree image) {
+            result.count += 1;
+            result.size += image.getFileSize();
+            return;
+        }
+
+        Enumeration<TreeNode> children = node.children();
+        while (children.hasMoreElements()) {
+            TreeNode child = children.nextElement();
+            if (child instanceof DefaultMutableTreeNode dtm) {
+                calculateFilteredCountsAndSize(dtm, result);
+            }
+        }
+    }
+
+    private void setupTreeCellRenderer() {
+        jTree.setCellRenderer(new DefaultTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree,
+                                                         Object value,
+                                                         boolean sel,
+                                                         boolean expanded,
+                                                         boolean leaf,
+                                                         int row,
+                                                         boolean hasFocus) {
+                Component component = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+                if (!(component instanceof JLabel label)) {
+                    return component;
+                }
+                if (!(value instanceof DefaultMutableTreeNode node)) {
+                    return component;
+                }
+                if (!(node.getUserObject() instanceof DirectoryInTree directory)) {
+                    return component;
+                }
+
+                CountsAndSize countsAndSize = calculateFilteredCountsAndSize(node);
+                String details = String.format("%,d", countsAndSize.count) + " images; " + Utils.bytesPrinter(countsAndSize.size);
+                label.setText(directory.getFileName() + " [" + details + "]");
+                return component;
+            }
+        });
     }
 
     private static boolean isDirectory(TreeNode node) {
