@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
@@ -111,6 +112,14 @@ public class DirectoryInTree extends FileInTree {
         return numberOfFilesBelowMe > 0 && numberOfFacesBelowMe < numberOfFilesBelowMe;
     }
 
+    public int getImageCountBelowMe() {
+        return numberOfFilesBelowMe;
+    }
+
+    public void precomputeFaces(IntConsumer onImageProcessed) {
+        numberOfFacesBelowMe = precomputeFacesRecursive(onImageProcessed);
+    }
+
     @Override
     public String toString() {
         String details = String.format("%,d", numberOfFilesBelowMe) + " images; " + Utils.bytesPrinter(sizeOfFilesBelowMe);
@@ -172,6 +181,22 @@ public class DirectoryInTree extends FileInTree {
     private int countDescendantFaces() {
         return imagesBelowMe.parallelStream().mapToInt(image -> imageContainsFace(image) ? 1 : 0).sum() +
                 foldersBelowMe.parallelStream().mapToInt(folder -> folder.containsFaces() ? 1 : 0).sum();
+    }
+
+    private int precomputeFacesRecursive(IntConsumer onImageProcessed) {
+        int faceCount = 0;
+        for (ImageFileInTree image : imagesBelowMe) {
+            if (imageContainsFace(image)) {
+                faceCount += 1;
+            }
+            if (onImageProcessed != null) {
+                onImageProcessed.accept(1);
+            }
+        }
+        for (DirectoryInTree folder : foldersBelowMe) {
+            faceCount += folder.precomputeFacesRecursive(onImageProcessed);
+        }
+        return faceCount;
     }
 
     private int duplicateCountFor(FileInTree fit) {

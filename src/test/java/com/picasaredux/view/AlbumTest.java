@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -107,6 +108,29 @@ class AlbumTest {
         assertEquals(List.of("face-01.png"), collectImageNames(view));
     }
 
+    @Test
+    void precomputesFaceDetectionForAllImages() throws IOException {
+        Path album = Files.createDirectory(tempDir.resolve("album"));
+        Path folder = Files.createDirectory(album.resolve("folder"));
+        writePng(folder.resolve("face-01.png"));
+        writePng(folder.resolve("landscape.png"));
+
+        AtomicInteger faceChecks = new AtomicInteger();
+        FileTree model = FileTree.withProviders(
+                _ -> 0L,
+                image -> {
+                    faceChecks.incrementAndGet();
+                    return image.getFileName().contains("face");
+                });
+        Album view = new Album(model);
+
+        view.setAlbum(album.toString());
+        assertEquals(0, faceChecks.get());
+
+        view.detectFacesForCurrentAlbum();
+        assertEquals(2, faceChecks.get());
+    }
+
     private static List<String> collectImageNames(Album view) {
         Object root = view.getTree().getModel().getRoot();
         if (!(root instanceof DefaultMutableTreeNode dtm)) {
@@ -181,4 +205,3 @@ class AlbumTest {
         Files.write(path, differentLength);
     }
 }
-

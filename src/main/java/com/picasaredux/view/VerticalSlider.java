@@ -5,24 +5,50 @@ import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class VerticalSlider extends UnderlyingSwingComponent {
+
+    private static final String FACE_FILTER_CARD_BUTTONS = "buttons";
+    private static final String FACE_FILTER_CARD_LOADING = "loading";
 
     private final JSplitPane splitPane;
 
     private final Album album;
+    private final JPanel faceFilterSwitcher;
+    private final JProgressBar faceDetectionProgress;
 
     private final JPanel rightHandSide;
     private final JPanel leftHandSide;
 
+    private JToggleButton seeAll;
+
+    private int albumLoadVersion;
+
     VerticalSlider() {
-        leftHandSide = new JPanel();
-        leftHandSide.setLayout(new BorderLayout());
 
         album = new Album();
         album.setupActionListeners(this);
 
-        JToggleButton seeAll = new JToggleButton("All Images");
+        faceFilterSwitcher = new JPanel(new CardLayout());
+        faceDetectionProgress = new JProgressBar(0, 100);
+
+        leftHandSide = new JPanel(new BorderLayout());
+        leftHandSide.add(setupFilterButtons(), BorderLayout.NORTH);
+        leftHandSide.add(new JScrollPane(album.getTree()), BorderLayout.CENTER);
+
+        rightHandSide = new JPanel(new BorderLayout());
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftHandSide, rightHandSide);
+
+        setUnderlyingComponent(splitPane);
+    }
+
+    JPanel setupFilterButtons() {
+
+        JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        seeAll = new JToggleButton("All Images");
+
         JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
         JToggleButton seeFaces = new JToggleButton("Only Faces");
         JToggleButton seeNoFaces = new JToggleButton("No Faces");
@@ -32,8 +58,6 @@ class VerticalSlider extends UnderlyingSwingComponent {
         filterGroup.add(seeDuplicates);
         filterGroup.add(seeFaces);
         filterGroup.add(seeNoFaces);
-
-        seeAll.setSelected(true);
 
         seeAll.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.ALL);
@@ -55,22 +79,26 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
-        JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel faceButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        faceButtons.add(seeFaces);
+        faceButtons.add(seeNoFaces);
+
+        JPanel loadingFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        loadingFaceFilters.add(new JLabel("Detecting faces..."));
+        loadingFaceFilters.add(faceDetectionProgress);
+
+        faceFilterSwitcher.add(loadingFaceFilters, FACE_FILTER_CARD_LOADING);
+        faceFilterSwitcher.add(faceButtons, FACE_FILTER_CARD_BUTTONS);
+
+        seeAll.setSelected(true);
+
         filterButtons.add(seeAll);
         filterButtons.add(seeDuplicates);
-        filterButtons.add(seeFaces);
-        filterButtons.add(seeNoFaces);
-        leftHandSide.add(filterButtons, BorderLayout.NORTH);
+        filterButtons.add(faceFilterSwitcher);
 
-        JScrollPane albumScrollPane = new JScrollPane(album.getTree());
-        leftHandSide.add(albumScrollPane, BorderLayout.CENTER);
+        showFaceFilterButtons();
 
-        rightHandSide = new JPanel();
-        rightHandSide.setLayout(new BorderLayout());
-
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftHandSide, rightHandSide);
-
-        setUnderlyingComponent(splitPane);
+        return filterButtons;
     }
 
     void setToPreferredSize() {
@@ -84,6 +112,49 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
     void setAlbum(String albumFolder) {
         album.setAlbum(albumFolder);
+        album.setFilterMode(Album.FilterMode.ALL);
+        album.collapseAllNodes();
+        seeAll.setSelected(true);
+        showFaceFilterLoading();
+        faceDetectionProgress.setValue(0);
+
+        int currentLoadVersion = ++albumLoadVersion;
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                int totalImages = album.getCurrentAlbumImageCount();
+                if (totalImages == 0) {
+                    setProgress(100);
+                    return null;
+                }
+                AtomicInteger processedImages = new AtomicInteger();
+                album.detectFacesForCurrentAlbum(_ -> {
+                    int processed = processedImages.incrementAndGet();
+                    int percent = (int) ((processed * 100L) / totalImages);
+                    setProgress(Math.min(100, percent));
+                });
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                if (currentLoadVersion != albumLoadVersion) {
+                    return;
+                }
+                showFaceFilterButtons();
+            }
+        };
+        worker.addPropertyChangeListener(event -> {
+            if (!"progress".equals(event.getPropertyName())) {
+                return;
+            }
+            if (currentLoadVersion != albumLoadVersion) {
+                return;
+            }
+            int progress = (Integer) event.getNewValue();
+            faceDetectionProgress.setValue(progress);
+        });
+        worker.execute();
     }
 
     void show() {
@@ -104,6 +175,16 @@ class VerticalSlider extends UnderlyingSwingComponent {
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();
         splitPane.repaint();
+    }
+
+    private void showFaceFilterLoading() {
+        CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
+        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_LOADING);
+    }
+
+    private void showFaceFilterButtons() {
+        CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
+        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_BUTTONS);
     }
 
 }

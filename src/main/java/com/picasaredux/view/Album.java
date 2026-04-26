@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.IntConsumer;
 
 class Album {
 
@@ -191,6 +192,24 @@ class Album {
     void setFilterMode(FilterMode filterMode) {
         this.filterMode = filterMode;
         refreshTreeFromModel();
+    }
+
+    void detectFacesForCurrentAlbum() {
+        detectFacesForCurrentAlbum(null);
+    }
+
+    int getCurrentAlbumImageCount() {
+        if (baseRoot == null || !(baseRoot.fileInTree() instanceof DirectoryInTree rootDirectory)) {
+            return 0;
+        }
+        return rootDirectory.getImageCountBelowMe();
+    }
+
+    void detectFacesForCurrentAlbum(IntConsumer onImageProcessed) {
+        if (baseRoot == null || !(baseRoot.fileInTree() instanceof DirectoryInTree rootDirectory)) {
+            return;
+        }
+        rootDirectory.precomputeFaces(onImageProcessed);
     }
 
     void rebuildFromRoot() {
