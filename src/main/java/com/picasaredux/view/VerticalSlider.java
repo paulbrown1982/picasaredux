@@ -11,6 +11,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
     private static final String FACE_FILTER_CARD_BUTTONS = "buttons";
     private static final String FACE_FILTER_CARD_LOADING = "loading";
+    private static final String FACE_FILTER_CARD_START = "start";
 
     private final JSplitPane splitPane;
 
@@ -50,6 +51,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         seeAll = new JToggleButton("All Images");
 
         JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
+        JButton detectFaces = new JButton("Detect faces");
         JToggleButton seeFaces = new JToggleButton("Only Faces");
         JToggleButton seeNoFaces = new JToggleButton("No Faces");
 
@@ -69,6 +71,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
+        detectFaces.addActionListener(_ -> startFaceDetection());
+
         seeFaces.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.FACES);
             album.expandAllNodes();
@@ -87,6 +91,10 @@ class VerticalSlider extends UnderlyingSwingComponent {
         loadingFaceFilters.add(new JLabel("Detecting faces..."));
         loadingFaceFilters.add(faceDetectionProgress);
 
+        JPanel startFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        startFaceFilters.add(detectFaces);
+
+        faceFilterSwitcher.add(startFaceFilters, FACE_FILTER_CARD_START);
         faceFilterSwitcher.add(loadingFaceFilters, FACE_FILTER_CARD_LOADING);
         faceFilterSwitcher.add(faceButtons, FACE_FILTER_CARD_BUTTONS);
 
@@ -96,7 +104,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         filterButtons.add(seeDuplicates);
         filterButtons.add(faceFilterSwitcher);
 
-        showFaceFilterButtons();
+        showFaceFilterStart();
 
         return filterButtons;
     }
@@ -115,10 +123,16 @@ class VerticalSlider extends UnderlyingSwingComponent {
         album.setFilterMode(Album.FilterMode.ALL);
         album.collapseAllNodes();
         seeAll.setSelected(true);
+        albumLoadVersion++;
+        faceDetectionProgress.setValue(0);
+        showFaceFilterStart();
+    }
+
+    private void startFaceDetection() {
         showFaceFilterLoading();
         faceDetectionProgress.setValue(0);
 
-        int currentLoadVersion = ++albumLoadVersion;
+        int currentLoadVersion = albumLoadVersion;
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
@@ -175,6 +189,11 @@ class VerticalSlider extends UnderlyingSwingComponent {
         rightHandSide.add(imageEditor.getComponent(), BorderLayout.CENTER);
         splitPane.revalidate();
         splitPane.repaint();
+    }
+
+    private void showFaceFilterStart() {
+        CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
+        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_START);
     }
 
     private void showFaceFilterLoading() {
