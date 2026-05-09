@@ -9,9 +9,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class VerticalSlider extends UnderlyingSwingComponent {
 
-    private static final String FACE_FILTER_CARD_BUTTONS = "buttons";
-    private static final String FACE_FILTER_CARD_LOADING = "loading";
-    private static final String FACE_FILTER_CARD_START = "start";
+    private enum FaceFilterCardState {
+        START,
+        LOADING,
+        BUTTONS,
+    }
 
     private final JSplitPane splitPane;
 
@@ -49,18 +51,20 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
         JPanel filterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        filterButtons.add(new JLabel("Show:"));
+
         seeAll = new JToggleButton("All Images");
 
         JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
         JButton detectFaces = new JButton("Detect faces");
         JButton stopDetecting = new JButton("Stop");
-        JToggleButton seeFaces = new JToggleButton("Only Faces");
+        JToggleButton seeOnlyFaces = new JToggleButton("Only Faces");
         JToggleButton seeNoFaces = new JToggleButton("No Faces");
 
         ButtonGroup filterGroup = new ButtonGroup();
         filterGroup.add(seeAll);
         filterGroup.add(seeDuplicates);
-        filterGroup.add(seeFaces);
+        filterGroup.add(seeOnlyFaces);
         filterGroup.add(seeNoFaces);
 
         seeAll.addActionListener(_ -> {
@@ -76,7 +80,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         detectFaces.addActionListener(_ -> startFaceDetection());
         stopDetecting.addActionListener(_ -> stopFaceDetection());
 
-        seeFaces.addActionListener(_ -> {
+        seeOnlyFaces.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.FACES);
             album.expandAllNodes();
         });
@@ -87,7 +91,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         });
 
         JPanel faceButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        faceButtons.add(seeFaces);
+        faceButtons.add(seeOnlyFaces);
         faceButtons.add(seeNoFaces);
 
         JPanel loadingFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
@@ -98,17 +102,13 @@ class VerticalSlider extends UnderlyingSwingComponent {
         JPanel startFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         startFaceFilters.add(detectFaces);
 
-        faceFilterSwitcher.add(startFaceFilters, FACE_FILTER_CARD_START);
-        faceFilterSwitcher.add(loadingFaceFilters, FACE_FILTER_CARD_LOADING);
-        faceFilterSwitcher.add(faceButtons, FACE_FILTER_CARD_BUTTONS);
-
-        seeAll.setSelected(true);
+        faceFilterSwitcher.add(startFaceFilters, FaceFilterCardState.START.name());
+        faceFilterSwitcher.add(loadingFaceFilters, FaceFilterCardState.LOADING.name());
+        faceFilterSwitcher.add(faceButtons, FaceFilterCardState.BUTTONS.name());
 
         filterButtons.add(seeAll);
         filterButtons.add(seeDuplicates);
         filterButtons.add(faceFilterSwitcher);
-
-        showFaceFilterStart();
 
         return filterButtons;
     }
@@ -129,12 +129,12 @@ class VerticalSlider extends UnderlyingSwingComponent {
         album.collapseAllNodes();
         seeAll.setSelected(true);
         albumLoadVersion++;
-        showFaceFilterStart();
+        showFaceFilterState(FaceFilterCardState.START);
     }
 
     private void startFaceDetection() {
         stopFaceDetection();
-        showFaceFilterLoading();
+        showFaceFilterState(FaceFilterCardState.LOADING);
         faceDetectionProgress.setValue(0);
 
         int currentLoadVersion = albumLoadVersion;
@@ -165,10 +165,10 @@ class VerticalSlider extends UnderlyingSwingComponent {
                 }
                 faceDetectionWorker = null;
                 if (isCancelled()) {
-                    showFaceFilterStart();
+                    showFaceFilterState(FaceFilterCardState.START);
                     return;
                 }
-                showFaceFilterButtons();
+                showFaceFilterState(FaceFilterCardState.BUTTONS);
             }
         };
         faceDetectionWorker.addPropertyChangeListener(event -> {
@@ -189,7 +189,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
             faceDetectionWorker.cancel(true);
             faceDetectionWorker = null;
         }
-        showFaceFilterStart();
+        showFaceFilterState(FaceFilterCardState.START);
     }
 
     void show() {
@@ -212,19 +212,9 @@ class VerticalSlider extends UnderlyingSwingComponent {
         splitPane.repaint();
     }
 
-    private void showFaceFilterStart() {
+    private void showFaceFilterState(FaceFilterCardState state) {
         CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
-        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_START);
-    }
-
-    private void showFaceFilterLoading() {
-        CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
-        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_LOADING);
-    }
-
-    private void showFaceFilterButtons() {
-        CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
-        cardLayout.show(faceFilterSwitcher, FACE_FILTER_CARD_BUTTONS);
+        cardLayout.show(faceFilterSwitcher, state.name());
     }
 
 }
