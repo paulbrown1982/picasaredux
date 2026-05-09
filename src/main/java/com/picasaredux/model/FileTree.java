@@ -53,18 +53,22 @@ public class FileTree {
         return root;
     }
 
+    public void setRoot(Node root) {
+        this.root = root;
+    }
+
     public void setAlbum(String albumFolder) {
-        root = build(albumFolder);
+        root = buildRoot(albumFolder);
     }
 
     public void rebuildFromRoot() {
         if (root == null) {
             return;
         }
-        root = build(root.fileInTree().getAbsoluteFilePath());
+        root = buildRoot(root.fileInTree().getAbsoluteFilePath());
     }
 
-    private Node build(String albumFolder) {
+    public Node buildRoot(String albumFolder) {
         File albumRoot = new File(albumFolder);
         if (!albumRoot.isDirectory()) {
             return null;

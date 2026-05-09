@@ -1,6 +1,7 @@
 package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
+import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
@@ -8,6 +9,11 @@ import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class VerticalSlider extends UnderlyingSwingComponent {
+
+    private enum AlbumLoadCardState {
+        READY,
+        LOADING
+    }
 
     private enum FaceFilterCardState {
         START,
@@ -18,6 +24,11 @@ class VerticalSlider extends UnderlyingSwingComponent {
     private final JSplitPane splitPane;
 
     private final Album album;
+    private final JPanel albumLoadSwitcher;
+    private final JProgressBar albumLoadProgress;
+    private final JButton cancelAlbumLoad;
+    private SwingWorker<FileTree.Node, Void> albumLoadWorker;
+
     private final JPanel faceFilterSwitcher;
     private final JProgressBar faceDetectionProgress;
     private SwingWorker<Void, Void> faceDetectionWorker;
@@ -33,6 +44,12 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
         album = new Album();
         album.setupActionListeners(this);
+
+        albumLoadSwitcher = new JPanel(new CardLayout());
+        albumLoadProgress = new JProgressBar();
+        albumLoadProgress.setIndeterminate(true);
+
+        cancelAlbumLoad = new JButton("Cancel");
 
         faceFilterSwitcher = new JPanel(new CardLayout());
         faceDetectionProgress = new JProgressBar(0, 100);
@@ -90,6 +107,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
+        cancelAlbumLoad.addActionListener(_ -> cancelAlbumLoad());
+
         JPanel faceButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         faceButtons.add(seeOnlyFaces);
         faceButtons.add(seeNoFaces);
@@ -110,7 +129,15 @@ class VerticalSlider extends UnderlyingSwingComponent {
         filterButtons.add(seeDuplicates);
         filterButtons.add(faceFilterSwitcher);
 
-        return filterButtons;
+        JPanel loadingAlbum = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        loadingAlbum.add(new JLabel("Loading album..."));
+        loadingAlbum.add(albumLoadProgress);
+        loadingAlbum.add(cancelAlbumLoad);
+
+        albumLoadSwitcher.add(loadingAlbum, AlbumLoadCardState.LOADING.name());
+        albumLoadSwitcher.add(filterButtons, AlbumLoadCardState.READY.name());
+
+        return albumLoadSwitcher;
     }
 
     void setToPreferredSize() {
@@ -123,13 +150,58 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void setAlbum(String albumFolder) {
+        cancelAlbumLoad();
         stopFaceDetection();
-        album.setAlbum(albumFolder);
-        album.setFilterMode(Album.FilterMode.ALL);
-        album.collapseAllNodes();
-        seeAll.setSelected(true);
         albumLoadVersion++;
+        int currentLoadVersion = albumLoadVersion;
+        showAlbumLoadState(AlbumLoadCardState.LOADING);
         showFaceFilterState(FaceFilterCardState.START);
+        album.clearTree();
+        rightHandSide.removeAll();
+        rightHandSide.revalidate();
+        rightHandSide.repaint();
+
+        albumLoadWorker = new SwingWorker<>() {
+            @Override
+            protected FileTree.Node doInBackground() {
+                return album.buildAlbumRoot(albumFolder);
+            }
+
+            @Override
+            protected void done() {
+                if (currentLoadVersion != albumLoadVersion) {
+                    return;
+                }
+                albumLoadWorker = null;
+                showAlbumLoadState(AlbumLoadCardState.READY);
+                if (isCancelled()) {
+                    return;
+                }
+                try {
+                    FileTree.Node loadedRoot = get();
+                    album.applyAlbumRoot(loadedRoot);
+                    album.setFilterMode(Album.FilterMode.ALL);
+                    album.collapseAllNodes();
+                    seeAll.setSelected(true);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                            splitPane,
+                            "Could not scan album: " + e.getMessage(),
+                            "Album load failed",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        };
+        albumLoadWorker.execute();
+    }
+
+    private void cancelAlbumLoad() {
+        if (albumLoadWorker != null) {
+            albumLoadWorker.cancel(true);
+            albumLoadWorker = null;
+            showAlbumLoadState(AlbumLoadCardState.READY);
+        }
     }
 
     private void startFaceDetection() {
@@ -215,6 +287,11 @@ class VerticalSlider extends UnderlyingSwingComponent {
     private void showFaceFilterState(FaceFilterCardState state) {
         CardLayout cardLayout = (CardLayout) faceFilterSwitcher.getLayout();
         cardLayout.show(faceFilterSwitcher, state.name());
+    }
+
+    private void showAlbumLoadState(AlbumLoadCardState state) {
+        CardLayout cardLayout = (CardLayout) albumLoadSwitcher.getLayout();
+        cardLayout.show(albumLoadSwitcher, state.name());
     }
 
 }

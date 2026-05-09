@@ -66,6 +66,11 @@ class Album {
         return jTree;
     }
 
+    void clearTree() {
+        defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+        jTree.setModel(defaultModel);
+    }
+
     private static final class CountsAndSize {
         private int count;
         private long size;
@@ -184,7 +189,15 @@ class Album {
     }
 
     void setAlbum(String _albumFolder) {
-        fileTree.setAlbum(_albumFolder);
+        applyAlbumRoot(fileTree.buildRoot(_albumFolder));
+    }
+
+    FileTree.Node buildAlbumRoot(String albumFolder) {
+        return fileTree.buildRoot(albumFolder);
+    }
+
+    void applyAlbumRoot(FileTree.Node root) {
+        fileTree.setRoot(root);
         resetFilteredRoots();
         refreshTreeFromModel();
     }
