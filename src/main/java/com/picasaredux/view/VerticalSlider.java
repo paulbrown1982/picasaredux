@@ -18,6 +18,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
     private final Album album;
     private final JPanel faceFilterSwitcher;
     private final JProgressBar faceDetectionProgress;
+    private SwingWorker<Void, Void> faceDetectionWorker;
 
     private final JPanel rightHandSide;
     private final JPanel leftHandSide;
@@ -52,6 +53,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
         JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
         JButton detectFaces = new JButton("Detect faces");
+        JButton stopDetecting = new JButton("Stop");
         JToggleButton seeFaces = new JToggleButton("Only Faces");
         JToggleButton seeNoFaces = new JToggleButton("No Faces");
 
@@ -72,6 +74,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         });
 
         detectFaces.addActionListener(_ -> startFaceDetection());
+        stopDetecting.addActionListener(_ -> stopFaceDetection());
 
         seeFaces.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.FACES);
@@ -90,6 +93,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
         JPanel loadingFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         loadingFaceFilters.add(new JLabel("Detecting faces..."));
         loadingFaceFilters.add(faceDetectionProgress);
+        loadingFaceFilters.add(stopDetecting);
 
         JPanel startFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         startFaceFilters.add(detectFaces);
@@ -119,21 +123,22 @@ class VerticalSlider extends UnderlyingSwingComponent {
     }
 
     void setAlbum(String albumFolder) {
+        stopFaceDetection();
         album.setAlbum(albumFolder);
         album.setFilterMode(Album.FilterMode.ALL);
         album.collapseAllNodes();
         seeAll.setSelected(true);
         albumLoadVersion++;
-        faceDetectionProgress.setValue(0);
         showFaceFilterStart();
     }
 
     private void startFaceDetection() {
+        stopFaceDetection();
         showFaceFilterLoading();
         faceDetectionProgress.setValue(0);
 
         int currentLoadVersion = albumLoadVersion;
-        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        faceDetectionWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
                 int totalImages = album.getCurrentAlbumImageCount();
@@ -143,6 +148,9 @@ class VerticalSlider extends UnderlyingSwingComponent {
                 }
                 AtomicInteger processedImages = new AtomicInteger();
                 album.detectFacesForCurrentAlbum(_ -> {
+                    if (isCancelled()) {
+                        return;
+                    }
                     int processed = processedImages.incrementAndGet();
                     int percent = (int) ((processed * 100L) / totalImages);
                     setProgress(Math.min(100, percent));
@@ -155,10 +163,15 @@ class VerticalSlider extends UnderlyingSwingComponent {
                 if (currentLoadVersion != albumLoadVersion) {
                     return;
                 }
+                faceDetectionWorker = null;
+                if (isCancelled()) {
+                    showFaceFilterStart();
+                    return;
+                }
                 showFaceFilterButtons();
             }
         };
-        worker.addPropertyChangeListener(event -> {
+        faceDetectionWorker.addPropertyChangeListener(event -> {
             if (!"progress".equals(event.getPropertyName())) {
                 return;
             }
@@ -168,7 +181,15 @@ class VerticalSlider extends UnderlyingSwingComponent {
             int progress = (Integer) event.getNewValue();
             faceDetectionProgress.setValue(progress);
         });
-        worker.execute();
+        faceDetectionWorker.execute();
+    }
+
+    private void stopFaceDetection() {
+        if (faceDetectionWorker != null) {
+            faceDetectionWorker.cancel(true);
+            faceDetectionWorker = null;
+        }
+        showFaceFilterStart();
     }
 
     void show() {
