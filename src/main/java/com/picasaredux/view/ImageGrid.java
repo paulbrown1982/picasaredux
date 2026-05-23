@@ -1,7 +1,7 @@
 package com.picasaredux.view;
 
-import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.model.FileInTree;
+import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,9 +27,9 @@ class ImageGrid extends UnderlyingSwingComponent {
         setUnderlyingComponent(gridPanel);
     }
 
-    void generateThumbnails(DirectoryInTree fit) {
+    void generateThumbnails(List<ImageFileInTree> images) {
         // Do Swing stuff in series
-        thumbnails = fit.listChildImages(false).stream().map(Thumbnail::new).toList();
+        thumbnails = images.stream().map(Thumbnail::new).toList();
         thumbnails.forEach(this::addThumbnailToGridPanel);
         render();
     }

@@ -1,11 +1,11 @@
 package com.picasaredux.view;
 
-import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class VerticalSlider extends UnderlyingSwingComponent {
@@ -77,12 +77,14 @@ class VerticalSlider extends UnderlyingSwingComponent {
         JButton stopDetecting = new JButton("Stop");
         JToggleButton seeOnlyFaces = new JToggleButton("Only Faces");
         JToggleButton seeNoFaces = new JToggleButton("No Faces");
+        JToggleButton seeFaceGroups = new JToggleButton("Face Groups");
 
         ButtonGroup filterGroup = new ButtonGroup();
         filterGroup.add(seeAll);
         filterGroup.add(seeDuplicates);
         filterGroup.add(seeOnlyFaces);
         filterGroup.add(seeNoFaces);
+        filterGroup.add(seeFaceGroups);
 
         seeAll.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.ALL);
@@ -107,11 +109,17 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
+        seeFaceGroups.addActionListener(_ -> {
+            album.setFilterMode(Album.FilterMode.FACE_GROUPS);
+            album.expandAllNodes();
+        });
+
         cancelAlbumLoad.addActionListener(_ -> cancelAlbumLoad());
 
         JPanel faceButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         faceButtons.add(seeOnlyFaces);
         faceButtons.add(seeNoFaces);
+        faceButtons.add(seeFaceGroups);
 
         JPanel loadingFaceFilters = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         loadingFaceFilters.add(new JLabel("Detecting faces..."));
@@ -268,8 +276,8 @@ class VerticalSlider extends UnderlyingSwingComponent {
         splitPane.setVisible(true);
     }
 
-    void showImageGallery(DirectoryInTree dit) {
-        ImageGallery imageGallery = new ImageGallery(album, dit);
+    void showImageGallery(List<ImageFileInTree> images) {
+        ImageGallery imageGallery = new ImageGallery(album, images);
         rightHandSide.removeAll();
         rightHandSide.add(imageGallery.getComponent(), BorderLayout.CENTER);
         rightHandSide.revalidate();

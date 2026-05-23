@@ -72,7 +72,7 @@ public class DirectoryInTree extends FileInTree {
     private List<? extends FileInTree> getDescendants() {
         File[] files = file.listFiles();
         if (files != null) {
-            return Stream.of(files).sorted().map(file -> {
+            return Stream.of(files).map(file -> {
                 if (isUsefulDirectory(file)) {
                     return new DirectoryInTree(file, filesCollatedBySize, hashProvider, faceProvider);
                 } else if (Utils.isImage(file)) {

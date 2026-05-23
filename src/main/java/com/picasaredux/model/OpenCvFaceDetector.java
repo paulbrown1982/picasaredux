@@ -1,12 +1,16 @@
 package com.picasaredux.model;
 
 import org.bytedeco.javacpp.Loader;
+import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.RectVector;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.net.URL;
+import java.io.File;
+import java.util.ArrayList;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -23,15 +27,24 @@ final class OpenCvFaceDetector {
     public OpenCvFaceDetector() {
     }
 
-    public boolean hasFace(java.io.File file) {
+    public boolean hasFace(File file) {
+        return !detectFaces(file).isEmpty();
+    }
+
+    List<Rectangle> detectFaces(File file) {
         Mat grayscale = imread(file.getAbsolutePath(), IMREAD_GRAYSCALE);
         if (grayscale == null || grayscale.empty()) {
-            return false;
+            return List.of();
         }
 
         RectVector faces = new RectVector();
         detector.get().detectMultiScale(grayscale, faces);
-        return faces.size() > 0;
+        List<Rectangle> rectangles = new ArrayList<>((int) faces.size());
+        for (long i = 0; i < faces.size(); i++) {
+            Rect face = faces.get(i);
+            rectangles.add(new Rectangle(face.x(), face.y(), face.width(), face.height()));
+        }
+        return rectangles;
     }
 
     private static CascadeClassifier newClassifier() {

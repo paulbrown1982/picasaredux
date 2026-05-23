@@ -1,6 +1,7 @@
 package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
+import com.picasaredux.model.FaceCollator;
 import com.picasaredux.model.FileInTree;
 import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
@@ -22,6 +23,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.List;
@@ -33,32 +35,39 @@ class Album {
         ALL,
         DUPLICATES,
         FACES,
-        NO_FACES
+        NO_FACES,
+        FACE_GROUPS
     }
 
     private final JTree jTree;
     private final FileTree fileTree;
+    private final FaceCollator faceCollator;
     private final EnumMap<FilterMode, FileTree.Node> filteredRoots;
     private DefaultTreeModel defaultModel;
     private FileTree.Node baseRoot;
     private FilterMode filterMode;
+    private List<FaceGroupNode> faceGroups;
 
 
     Album() {
         jTree = new JTree();
         fileTree = new FileTree();
+        faceCollator = new FaceCollator();
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
+        faceGroups = List.of();
         setupTreeCellRenderer();
     }
 
     Album(FileTree fileTree) {
         jTree = new JTree();
         this.fileTree = fileTree;
+        faceCollator = new FaceCollator();
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
+        faceGroups = List.of();
         setupTreeCellRenderer();
     }
 
@@ -146,8 +155,12 @@ class Album {
 
     private static void openFileBySystemForTreePath(TreePath selPath) {
         if (Desktop.isDesktopSupported()) {
+            String path = treePathToFilePath(selPath);
+            if (path.isBlank()) {
+                return;
+            }
             try {
-                Desktop.getDesktop().open(new File(treePathToFilePath(selPath)));
+                Desktop.getDesktop().open(new File(path));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -173,17 +186,37 @@ class Album {
     }
 
     private static DefaultMutableTreeNode asSwingTree(FileTree.Node node) {
-        DefaultMutableTreeNode swingNode = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
-        node.children().stream().map(Album::asSwingTree).forEach(swingNode::add);
-        return swingNode;
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
+        node.children().stream()
+                .sorted(Comparator.comparing(FileTree.Node::getNameOfFileInTree))
+                .map(Album::asSwingTree)
+                .forEach(root::add);
+        return root;
+    }
+
+    private static DefaultMutableTreeNode asSwingFaceTree(List<FaceGroupNode> groups) {
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Faces");
+        for (FaceGroupNode group : groups) {
+            DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(group, true);
+            group.images().stream()
+                    .sorted(Comparator.comparing(ImageFileInTree::getFileName))
+                    .map(image -> new DefaultMutableTreeNode(image, false))
+                    .forEach(groupNode::add);
+            root.add(groupNode);
+        }
+        return root;
     }
 
     private void refreshTreeFromModel() {
-        FileTree.Node root = getFilteredRoot(filterMode);
-        if (root == null) {
-            defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+        if (filterMode == FilterMode.FACE_GROUPS) {
+            defaultModel = new DefaultTreeModel(asSwingFaceTree(faceGroups), true);
         } else {
-            defaultModel = new DefaultTreeModel(asSwingTree(root), true);
+            FileTree.Node root = getFilteredRoot(filterMode);
+            if (root == null) {
+                defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+            } else {
+                defaultModel = new DefaultTreeModel(asSwingTree(root), true);
+            }
         }
         jTree.setModel(defaultModel);
     }
@@ -223,6 +256,7 @@ class Album {
             return;
         }
         rootDirectory.precomputeFaces(onImageProcessed);
+        rebuildFaceGroups();
     }
 
     void rebuildFromRoot() {
@@ -234,6 +268,7 @@ class Album {
     private void resetFilteredRoots() {
         baseRoot = fileTree.getRoot();
         filteredRoots.clear();
+        faceGroups = List.of();
         if (baseRoot != null) {
             filteredRoots.put(FilterMode.ALL, baseRoot);
         }
@@ -241,6 +276,9 @@ class Album {
 
     private FileTree.Node getFilteredRoot(FilterMode mode) {
         if (baseRoot == null) {
+            return null;
+        }
+        if (mode == FilterMode.FACE_GROUPS) {
             return null;
         }
         return filteredRoots.computeIfAbsent(mode, _ -> filterNode(baseRoot, mode));
@@ -278,6 +316,7 @@ class Album {
             case DUPLICATES -> directoryInTree.containsDuplicateFiles();
             case FACES -> directoryInTree.containsFaces();
             case NO_FACES -> directoryInTree.containsImagesWithoutAnyFaces();
+            case FACE_GROUPS -> false;
         };
     }
 
@@ -287,6 +326,7 @@ class Album {
             case DUPLICATES -> directoryInTree.imageIsDuplicate(imageFileInTree);
             case FACES -> directoryInTree.imageContainsFace(imageFileInTree);
             case NO_FACES -> !directoryInTree.imageContainsFace(imageFileInTree);
+            case FACE_GROUPS -> false;
         };
     }
 
@@ -349,10 +389,12 @@ class Album {
             FileInTree fit = getFITForNode(dtm);
             if (fit != null) {
                 if (fit instanceof DirectoryInTree dit) {
-                    jsp.showImageGallery(dit);
+                    jsp.showImageGallery(dit.listChildImages(false));
                 } else if (fit instanceof ImageFileInTree ifit) {
                     jsp.showImageEditor(ifit);
                 }
+            } else if (dtm.getUserObject() instanceof FaceGroupNode faceGroupNode) {
+                jsp.showImageGallery(faceGroupNode.images());
             }
         });
 
@@ -398,6 +440,42 @@ class Album {
         int row = 0;
         while (row++ < jTree.getRowCount()) {
             jTree.collapseRow(row);
+        }
+    }
+
+    private void rebuildFaceGroups() {
+        if (baseRoot == null) {
+            faceGroups = List.of();
+            return;
+        }
+        List<ImageFileInTree> images = new ArrayList<>();
+        collectImages(baseRoot, images);
+        List<List<ImageFileInTree>> groups = faceCollator.cluster(images);
+        List<FaceGroupNode> builtGroups = new ArrayList<>(groups.size());
+        for (int i = 0; i < groups.size(); i++) {
+            List<ImageFileInTree> groupImages = groups.get(i);
+            if (!groupImages.isEmpty()) {
+                builtGroups.add(new FaceGroupNode("Face " + (i + 1), groupImages));
+            }
+        }
+        faceGroups = builtGroups;
+    }
+
+    private static void collectImages(FileTree.Node node, List<ImageFileInTree> images) {
+        if (node.fileInTree() instanceof ImageFileInTree image) {
+            images.add(image);
+            return;
+        }
+        for (FileTree.Node child : node.children()) {
+            collectImages(child, images);
+        }
+    }
+
+    private record FaceGroupNode(String label, List<ImageFileInTree> images) {
+        @Override
+        public String toString() {
+            long totalSize = images.stream().mapToLong(ImageFileInTree::getFileSize).sum();
+            return label + " [" + images.size() + " images; " + Utils.bytesPrinter(totalSize) + "]";
         }
     }
 

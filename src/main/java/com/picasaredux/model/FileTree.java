@@ -45,6 +45,10 @@ public class FileTree {
         public boolean isLeaf() {
             return children.isEmpty();
         }
+
+        public String getNameOfFileInTree() {
+            return fileInTree.getFileName();
+        }
     }
 
     private Node root;
