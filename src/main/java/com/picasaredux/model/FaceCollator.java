@@ -2,7 +2,7 @@ package com.picasaredux.model;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_img_hash.ImgHashBase;
-import org.bytedeco.opencv.opencv_img_hash.PHash;
+import org.bytedeco.opencv.opencv_img_hash.ColorMomentHash;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -15,10 +15,12 @@ import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 
 public final class FaceCollator {
 
-    private static final int FACE_DISTANCE_THRESHOLD = 12;
+    // Tight enough to keep visually distinct faces apart while still grouping near-identical crops.
+    private static final double FACE_DISTANCE_THRESHOLD = 0.5;
+    private static final double FACE_CROP_PADDING_RATIO = 0.15;
 
     private final OpenCvFaceDetector detector = new OpenCvFaceDetector();
-    private final ImgHashBase hashAlgorithm = PHash.create();
+    private final ImgHashBase hashAlgorithm = ColorMomentHash.create();
 
     public List<List<ImageFileInTree>> cluster(List<ImageFileInTree> images) {
         List<Cluster> clusters = new ArrayList<>();
@@ -35,7 +37,7 @@ public final class FaceCollator {
                     double bestDistance = Double.POSITIVE_INFINITY;
                     for (Mat signature : signatures) {
                         for (Cluster cluster : clusters) {
-                            double distance = hashAlgorithm.compare(cluster.center(), signature);
+                            double distance = cluster.bestDistance(signature, hashAlgorithm);
                             if (distance <= FACE_DISTANCE_THRESHOLD && distance < bestDistance) {
                                 bestCluster = cluster;
                                 bestSignature = signature;
@@ -71,6 +73,10 @@ public final class FaceCollator {
             return List.of();
         }
 
+        Rectangle face = faces.stream()
+                .max(Comparator.comparingInt(r -> r.width * r.height))
+                .orElseThrow();
+
         Mat source = imread(image.getUnderlying().getAbsolutePath(), IMREAD_GRAYSCALE);
         if (source == null) {
             return List.of();
@@ -80,24 +86,31 @@ public final class FaceCollator {
             if (source.empty()) {
                 return List.of();
             }
-            List<Mat> signatures = new ArrayList<>(faces.size());
-            for (Rectangle face : faces) {
-                Rectangle bounds = face.intersection(new Rectangle(0, 0, source.cols(), source.rows()));
-                if (bounds.width < 8 || bounds.height < 8) {
-                    continue;
-                }
-                Mat crop = new Mat(source, new org.bytedeco.opencv.opencv_core.Rect(
-                        bounds.x, bounds.y, bounds.width, bounds.height));
-                try {
-                    signatures.add(signatureFor(crop));
-                } finally {
-                    crop.release();
-                }
+            Rectangle bounds = paddedBounds(face, source.cols(), source.rows());
+            if (bounds.width < 8 || bounds.height < 8) {
+                return List.of();
             }
-            return signatures;
+            Mat crop = new Mat(source, new org.bytedeco.opencv.opencv_core.Rect(
+                    bounds.x, bounds.y, bounds.width, bounds.height));
+            try {
+                return List.of(signatureFor(crop));
+            } finally {
+                crop.release();
+            }
         } finally {
             source.release();
         }
+    }
+
+    private static Rectangle paddedBounds(Rectangle face, int width, int height) {
+        int padX = (int) Math.round(face.width * FACE_CROP_PADDING_RATIO);
+        int padY = (int) Math.round(face.height * FACE_CROP_PADDING_RATIO);
+        Rectangle expanded = new Rectangle(
+                face.x - padX,
+                face.y - padY,
+                face.width + (padX * 2),
+                face.height + (padY * 2));
+        return expanded.intersection(new Rectangle(0, 0, width, height));
     }
 
     private Mat signatureFor(Mat crop) {
@@ -108,21 +121,25 @@ public final class FaceCollator {
 
     private static final class Cluster {
         private final Set<ImageFileInTree> images = new LinkedHashSet<>();
-        private Mat center;
+        private final List<Mat> signatures = new ArrayList<>();
 
         private Cluster() {
         }
 
-        private Mat center() {
-            return center;
-        }
-
         private void add(ImageFileInTree image, Mat signature) {
             images.add(image);
-            if (center != null) {
-                center.release();
+            signatures.add(signature.clone());
+        }
+
+        private double bestDistance(Mat signature, ImgHashBase hashAlgorithm) {
+            double best = Double.POSITIVE_INFINITY;
+            for (Mat clusterSignature : signatures) {
+                double distance = hashAlgorithm.compare(clusterSignature, signature);
+                if (distance < best) {
+                    best = distance;
+                }
             }
-            center = signature.clone();
+            return best;
         }
 
         private List<ImageFileInTree> images() {
@@ -134,9 +151,7 @@ public final class FaceCollator {
         }
 
         private void release() {
-            if (center != null) {
-                center.release();
-            }
+            signatures.forEach(Mat::release);
         }
     }
 }
