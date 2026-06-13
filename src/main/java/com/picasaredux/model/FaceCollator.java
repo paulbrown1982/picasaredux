@@ -127,8 +127,9 @@ public final class FaceCollator {
         }
 
         private void add(ImageFileInTree image, Mat signature) {
-            images.add(image);
-            signatures.add(signature.clone());
+            if (images.add(image)) {
+                signatures.add(signature.clone());
+            }
         }
 
         private double bestDistance(Mat signature, ImgHashBase hashAlgorithm) {
