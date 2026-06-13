@@ -60,7 +60,7 @@ public final class FaceCollator {
 
             return clusters.stream()
                     .sorted(Comparator.comparingInt(Cluster::imageCount).reversed())
-                    .map(Cluster::images)
+                    .map(Cluster::getImages)
                     .toList();
         } finally {
             clusters.forEach(Cluster::release);
@@ -143,7 +143,7 @@ public final class FaceCollator {
             return best;
         }
 
-        private List<ImageFileInTree> images() {
+        private List<ImageFileInTree> getImages() {
             return List.copyOf(images);
         }
 
