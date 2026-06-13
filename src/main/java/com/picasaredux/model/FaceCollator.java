@@ -26,7 +26,7 @@ public final class FaceCollator {
         List<Cluster> clusters = new ArrayList<>();
         try {
             for (ImageFileInTree image : images) {
-                List<Mat> signatures = faceSignaturesForImage(image);
+                List<Mat> signatures = getFaceSignaturesForImage(image);
                 try {
                     if (signatures.isEmpty()) {
                         continue;
@@ -67,7 +67,7 @@ public final class FaceCollator {
         }
     }
 
-    private List<Mat> faceSignaturesForImage(ImageFileInTree image) {
+    private List<Mat> getFaceSignaturesForImage(ImageFileInTree image) {
         List<Rectangle> faces = detector.detectFaces(image.getUnderlying());
         if (faces.isEmpty()) {
             return List.of();
