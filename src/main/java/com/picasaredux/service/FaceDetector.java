@@ -1,4 +1,4 @@
-package com.picasaredux.model;
+package com.picasaredux.service;
 
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.opencv.opencv_core.Rect;
@@ -17,7 +17,7 @@ import java.util.List;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_GRAYSCALE;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 
-final class FaceDetector {
+public final class FaceDetector {
 
     private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
     private static final Path CASCADE_PATH = loadCascadePath();

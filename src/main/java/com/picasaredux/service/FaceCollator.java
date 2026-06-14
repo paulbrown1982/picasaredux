@@ -1,5 +1,6 @@
-package com.picasaredux.model;
+package com.picasaredux.service;
 
+import com.picasaredux.model.ImageFileInTree;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_img_hash.ImgHashBase;

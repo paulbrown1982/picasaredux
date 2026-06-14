@@ -1,5 +1,7 @@
 package com.picasaredux.model;
 
+import com.picasaredux.service.FaceDetector;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;

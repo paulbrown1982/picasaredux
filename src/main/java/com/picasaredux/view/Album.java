@@ -1,7 +1,7 @@
 package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
-import com.picasaredux.model.FaceCollator;
+import com.picasaredux.service.FaceCollator;
 import com.picasaredux.model.FileInTree;
 import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;

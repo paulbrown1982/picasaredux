@@ -1,5 +1,7 @@
-package com.picasaredux.model;
+package com.picasaredux.service;
 
+import com.picasaredux.model.ImageFileInTree;
+import com.picasaredux.model.Utils;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
