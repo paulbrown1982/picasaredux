@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ImageFileInTree extends FileInTree {
 
-    private static final OpenCvFaceDetector FACE_DETECTOR = new OpenCvFaceDetector();
+    private static final FaceDetector FACE_DETECTOR = new FaceDetector();
 
     private Long hash;
     private Boolean containsFace;

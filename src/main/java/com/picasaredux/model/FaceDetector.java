@@ -17,14 +17,14 @@ import java.util.List;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.IMREAD_GRAYSCALE;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 
-final class OpenCvFaceDetector {
+final class FaceDetector {
 
     private static final String CASCADE_FILE = "haarcascade_frontalface_alt.xml";
     private static final Path CASCADE_PATH = loadCascadePath();
 
-    private final ThreadLocal<CascadeClassifier> detector = ThreadLocal.withInitial(OpenCvFaceDetector::newClassifier);
+    private final ThreadLocal<CascadeClassifier> detector = ThreadLocal.withInitial(FaceDetector::newClassifier);
 
-    public OpenCvFaceDetector() {
+    public FaceDetector() {
     }
 
     public boolean hasFace(File file) {
@@ -77,7 +77,7 @@ final class OpenCvFaceDetector {
         );
 
         for (String candidate : candidates) {
-            URL resource = OpenCvFaceDetector.class.getResource(candidate);
+            URL resource = FaceDetector.class.getResource(candidate);
             if (resource != null) {
                 return resource;
             }

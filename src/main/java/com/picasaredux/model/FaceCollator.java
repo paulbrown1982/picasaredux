@@ -1,6 +1,7 @@
 package com.picasaredux.model;
 
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_img_hash.ImgHashBase;
 import org.bytedeco.opencv.opencv_img_hash.ColorMomentHash;
 
@@ -19,23 +20,23 @@ public final class FaceCollator {
     private static final double FACE_DISTANCE_THRESHOLD = 0.5;
     private static final double FACE_CROP_PADDING_RATIO = 0.15;
 
-    private final OpenCvFaceDetector detector = new OpenCvFaceDetector();
+    private final FaceDetector detector = new FaceDetector();
     private final ImgHashBase hashAlgorithm = ColorMomentHash.create();
 
     public List<List<ImageFileInTree>> cluster(List<ImageFileInTree> images) {
         List<Cluster> clusters = new ArrayList<>();
         try {
             for (ImageFileInTree image : images) {
-                List<Mat> signatures = getFaceSignaturesForImage(image);
+                List<Signature> signatures = getFaceSignaturesForImage(image);
                 try {
                     if (signatures.isEmpty()) {
                         continue;
                     }
 
                     Cluster bestCluster = null;
-                    Mat bestSignature = null;
+                    Signature bestSignature = null;
                     double bestDistance = Double.POSITIVE_INFINITY;
-                    for (Mat signature : signatures) {
+                    for (Signature signature : signatures) {
                         for (Cluster cluster : clusters) {
                             double distance = cluster.bestDistance(signature, hashAlgorithm);
                             if (distance <= FACE_DISTANCE_THRESHOLD && distance < bestDistance) {
@@ -54,7 +55,7 @@ public final class FaceCollator {
                         bestCluster.add(image, bestSignature);
                     }
                 } finally {
-                    signatures.forEach(Mat::release);
+                    signatures.forEach(Signature::release);
                 }
             }
 
@@ -67,7 +68,7 @@ public final class FaceCollator {
         }
     }
 
-    private List<Mat> getFaceSignaturesForImage(ImageFileInTree image) {
+    private List<Signature> getFaceSignaturesForImage(ImageFileInTree image) {
         List<Rectangle> faces = detector.detectFaces(image.getUnderlying());
         if (faces.isEmpty()) {
             return List.of();
@@ -90,8 +91,7 @@ public final class FaceCollator {
             if (bounds.width < 8 || bounds.height < 8) {
                 return List.of();
             }
-            Mat crop = new Mat(source, new org.bytedeco.opencv.opencv_core.Rect(
-                    bounds.x, bounds.y, bounds.width, bounds.height));
+            Mat crop = new Mat(source, new Rect(bounds.x, bounds.y, bounds.width, bounds.height));
             try {
                 return List.of(signatureFor(crop));
             } finally {
@@ -113,29 +113,29 @@ public final class FaceCollator {
         return expanded.intersection(new Rectangle(0, 0, width, height));
     }
 
-    private Mat signatureFor(Mat crop) {
+    private Signature signatureFor(Mat crop) {
         Mat hash = new Mat();
         hashAlgorithm.compute(crop, hash);
-        return hash;
+        return new Signature(hash);
     }
 
     private static final class Cluster {
         private final Set<ImageFileInTree> images = new LinkedHashSet<>();
-        private final List<Mat> signatures = new ArrayList<>();
+        private final List<Signature> signatures = new ArrayList<>();
 
         private Cluster() {
         }
 
-        private void add(ImageFileInTree image, Mat signature) {
+        private void add(ImageFileInTree image, Signature signature) {
             if (images.add(image)) {
-                signatures.add(signature.clone());
+                signatures.add(signature);
             }
         }
 
-        private double bestDistance(Mat signature, ImgHashBase hashAlgorithm) {
+        private double bestDistance(Signature signature, ImgHashBase hashAlgorithm) {
             double best = Double.POSITIVE_INFINITY;
-            for (Mat clusterSignature : signatures) {
-                double distance = hashAlgorithm.compare(clusterSignature, signature);
+            for (Signature clusterSignature : signatures) {
+                double distance = hashAlgorithm.compare(clusterSignature.getUnderlying(), signature.getUnderlying());
                 if (distance < best) {
                     best = distance;
                 }
@@ -152,7 +152,20 @@ public final class FaceCollator {
         }
 
         private void release() {
-            signatures.forEach(Mat::release);
+            signatures.forEach(Signature::release);
+        }
+    }
+
+    private static final class Signature {
+        Mat underlying;
+        private Signature(Mat mat) {
+            underlying = mat;
+        }
+        Mat getUnderlying() {
+            return underlying;
+        }
+        void release() {
+            underlying.release();
         }
     }
 }
