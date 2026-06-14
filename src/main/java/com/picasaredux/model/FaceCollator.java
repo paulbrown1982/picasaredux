@@ -128,14 +128,14 @@ public final class FaceCollator {
 
         private void add(ImageFileInTree image, Signature signature) {
             if (images.add(image)) {
-                signatures.add(signature);
+                signatures.add(signature.copy());
             }
         }
 
         private double bestDistance(Signature signature, ImgHashBase hashAlgorithm) {
             double best = Double.POSITIVE_INFINITY;
             for (Signature clusterSignature : signatures) {
-                double distance = hashAlgorithm.compare(clusterSignature.getUnderlying(), signature.getUnderlying());
+                double distance = hashAlgorithm.compare(clusterSignature.underlying(), signature.underlying());
                 if (distance < best) {
                     best = distance;
                 }
@@ -156,14 +156,12 @@ public final class FaceCollator {
         }
     }
 
-    private static final class Signature {
-        Mat underlying;
-        private Signature(Mat mat) {
-            underlying = mat;
+    private record Signature(Mat underlying) {
+
+        private Signature copy() {
+            return new Signature(underlying.clone());
         }
-        Mat getUnderlying() {
-            return underlying;
-        }
+
         void release() {
             underlying.release();
         }
