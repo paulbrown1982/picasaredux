@@ -1,6 +1,7 @@
 package com.picasaredux.model;
 
 import com.picasaredux.service.FaceDetector;
+import com.picasaredux.service.OpenCvFaceDetector;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -10,7 +11,7 @@ import java.io.IOException;
 
 public class ImageFileInTree extends FileInTree {
 
-    private static final FaceDetector FACE_DETECTOR = new FaceDetector();
+    private static final FaceDetector FACE_DETECTOR = new OpenCvFaceDetector();
 
     private Long hash;
     private Boolean containsFace;

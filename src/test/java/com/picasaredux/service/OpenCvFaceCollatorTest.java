@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FaceCollatorTest {
+class OpenCvFaceCollatorTest {
     @Test
     void stockImagesClustersDoNotRepeatTheSameImageAcrossGroups() throws IOException {
         Path stockImages = Path.of("stock_images");
@@ -28,7 +28,7 @@ class FaceCollatorTest {
                 .map(ImageFileInTree::new)
                 .toList();
 
-        FaceCollator collator = new FaceCollator();
+        OpenCvFaceCollator collator = new OpenCvFaceCollator();
         List<List<ImageFileInTree>> clusters = collator.cluster(images);
 
         assertEquals(3, clusters.size(), "Expected 3 face clusters in stock_images");
@@ -67,7 +67,7 @@ class FaceCollatorTest {
 
         assertEquals(2, images.size(), "Expected exactly two stock images in the June 2 fixture");
 
-        List<List<ImageFileInTree>> clusters = new FaceCollator().cluster(images);
+        List<List<ImageFileInTree>> clusters = new OpenCvFaceCollator().cluster(images);
         Set<String> expected = images.stream()
                 .map(ImageFileInTree::getAbsoluteFilePath)
                 .collect(Collectors.toSet());

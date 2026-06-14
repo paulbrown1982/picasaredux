@@ -2,6 +2,7 @@ package com.picasaredux.view;
 
 import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.service.FaceCollator;
+import com.picasaredux.service.OpenCvFaceCollator;
 import com.picasaredux.model.FileInTree;
 import com.picasaredux.model.FileTree;
 import com.picasaredux.model.ImageFileInTree;
@@ -52,7 +53,7 @@ class Album {
     Album() {
         jTree = new JTree();
         fileTree = new FileTree();
-        faceCollator = new FaceCollator();
+        faceCollator = new OpenCvFaceCollator();
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
@@ -63,7 +64,7 @@ class Album {
     Album(FileTree fileTree) {
         jTree = new JTree();
         this.fileTree = fileTree;
-        faceCollator = new FaceCollator();
+        faceCollator = new OpenCvFaceCollator();
         filteredRoots = new EnumMap<>(FilterMode.class);
         defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         filterMode = FilterMode.ALL;
