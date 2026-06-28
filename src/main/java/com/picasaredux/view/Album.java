@@ -35,6 +35,9 @@ class Album {
     public enum FilterMode {
         ALL,
         DUPLICATES,
+        PORTRAIT,
+        LANDSCAPE,
+        SQUARE,
         FACES,
         NO_FACES,
         FACE_GROUPS
@@ -297,9 +300,10 @@ class Album {
         List<FileTree.Node> filteredChildren = new ArrayList<>();
         for (FileTree.Node child : node.children()) {
             FileInTree childFit = child.fileInTree();
-            if (childFit instanceof DirectoryInTree childDirectory) {
-                if (includeDirectory(childDirectory, mode)) {
-                    filteredChildren.add(filterNode(child, mode));
+            if (childFit instanceof DirectoryInTree) {
+                FileTree.Node filteredChild = filterNode(child, mode);
+                if (!filteredChild.children().isEmpty()) {
+                    filteredChildren.add(filteredChild);
                 }
             } else if (childFit instanceof ImageFileInTree childImage) {
                 if (includeImage(parentDirectory, childImage, mode)) {
@@ -311,20 +315,13 @@ class Album {
         return new FileTree.Node(node.fileInTree(), filteredChildren);
     }
 
-    private static boolean includeDirectory(DirectoryInTree directoryInTree, FilterMode mode) {
-        return switch (mode) {
-            case ALL -> directoryInTree.isNotEmpty();
-            case DUPLICATES -> directoryInTree.containsDuplicateFiles();
-            case FACES -> directoryInTree.containsFaces();
-            case NO_FACES -> directoryInTree.containsImagesWithoutAnyFaces();
-            case FACE_GROUPS -> false;
-        };
-    }
-
     private static boolean includeImage(DirectoryInTree directoryInTree, ImageFileInTree imageFileInTree, FilterMode mode) {
         return switch (mode) {
             case ALL -> true;
             case DUPLICATES -> directoryInTree.imageIsDuplicate(imageFileInTree);
+            case PORTRAIT -> imageFileInTree.getHeight() > imageFileInTree.getWidth();
+            case LANDSCAPE -> imageFileInTree.getWidth() > imageFileInTree.getHeight();
+            case SQUARE -> imageFileInTree.getWidth() == imageFileInTree.getHeight();
             case FACES -> directoryInTree.imageContainsFace(imageFileInTree);
             case NO_FACES -> !directoryInTree.imageContainsFace(imageFileInTree);
             case FACE_GROUPS -> false;

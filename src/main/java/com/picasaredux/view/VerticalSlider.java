@@ -72,19 +72,24 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
         seeAll = new JToggleButton("All Images");
 
-        JToggleButton seeDuplicates = new JToggleButton("Only Duplicates");
-        JButton detectFaces = new JButton("Detect faces");
+        JToggleButton seeDuplicates = new JToggleButton("Duplicates");
+        JToggleButton seePortrait = new JToggleButton("Portraits");
+        JToggleButton seeLandscape = new JToggleButton("Landscapes");
+        JToggleButton seeSquare = new JToggleButton("Square");
+        JButton detectFaces = new JButton("Faces...");
         JButton stopDetecting = new JButton("Stop");
-        JToggleButton seeOnlyFaces = new JToggleButton("Only Faces");
-        JToggleButton seeNoFaces = new JToggleButton("No Faces");
-        JToggleButton seeFaceGroups = new JToggleButton("Face Groups");
+        JToggleButton seeOnlyFaces = new JToggleButton("Faces");
+        JToggleButton seeNoFaces = new JToggleButton("Without Faces");
+        JToggleButton seeFaceGroups = new JToggleButton("Collated Faces");
 
         ButtonGroup filterGroup = new ButtonGroup();
         filterGroup.add(seeAll);
-        filterGroup.add(seeDuplicates);
-        filterGroup.add(seeOnlyFaces);
-        filterGroup.add(seeNoFaces);
-        filterGroup.add(seeFaceGroups);
+
+        List<JToggleButton> mainFilters = List.of(seeDuplicates, seePortrait, seeLandscape, seeSquare);
+        mainFilters.forEach(filterGroup::add);
+
+        List<JToggleButton> faceFilters = List.of(seeOnlyFaces, seeNoFaces, seeFaceGroups);
+        faceFilters.forEach(filterGroup::add);
 
         seeAll.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.ALL);
@@ -93,6 +98,21 @@ class VerticalSlider extends UnderlyingSwingComponent {
 
         seeDuplicates.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.DUPLICATES);
+            album.expandAllNodes();
+        });
+
+        seePortrait.addActionListener(_ -> {
+            album.setFilterMode(Album.FilterMode.PORTRAIT);
+            album.expandAllNodes();
+        });
+
+        seeLandscape.addActionListener(_ -> {
+            album.setFilterMode(Album.FilterMode.LANDSCAPE);
+            album.expandAllNodes();
+        });
+
+        seeLandscape.addActionListener(_ -> {
+            album.setFilterMode(Album.FilterMode.SQUARE);
             album.expandAllNodes();
         });
 
@@ -134,7 +154,9 @@ class VerticalSlider extends UnderlyingSwingComponent {
         faceFilterSwitcher.add(faceButtons, FaceFilterCardState.BUTTONS.name());
 
         filterButtons.add(seeAll);
-        filterButtons.add(seeDuplicates);
+        filterButtons.add(new JLabel("Only:"));
+
+        mainFilters.forEach(filterButtons::add);
         filterButtons.add(faceFilterSwitcher);
 
         JPanel loadingAlbum = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));

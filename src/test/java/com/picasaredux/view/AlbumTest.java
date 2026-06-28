@@ -5,11 +5,13 @@ import com.picasaredux.model.ImageFileInTree;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.Component;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -109,6 +111,27 @@ class AlbumTest {
     }
 
     @Test
+    void showsOnlyPortraitOrLandscapeImagesWhenOrientationFilterEnabled() throws IOException {
+        Path album = Files.createDirectory(tempDir.resolve("album"));
+        Path folder = Files.createDirectory(album.resolve("folder"));
+        writeImage(folder.resolve("landscape.png"), 3, 2);
+        writeImage(folder.resolve("portrait.png"), 2, 3);
+        writeImage(folder.resolve("square.png"), 2, 2);
+
+        Album view = new Album();
+        view.setAlbum(album.toString());
+
+        view.setFilterMode(Album.FilterMode.PORTRAIT);
+        assertEquals(List.of("portrait.png"), collectImageNames(view));
+
+        view.setFilterMode(Album.FilterMode.LANDSCAPE);
+        assertEquals(List.of("landscape.png"), collectImageNames(view));
+
+        view.setFilterMode(Album.FilterMode.SQUARE);
+        assertEquals(List.of("square.png"), collectImageNames(view));
+    }
+
+    @Test
     void precomputesFaceDetectionForAllImages() throws IOException {
         Path album = Files.createDirectory(tempDir.resolve("album"));
         Path folder = Files.createDirectory(album.resolve("folder"));
@@ -203,5 +226,10 @@ class AlbumTest {
         System.arraycopy(ONE_PIXEL_PNG, 0, differentLength, 0, ONE_PIXEL_PNG.length);
         differentLength[differentLength.length - 1] = 1;
         Files.write(path, differentLength);
+    }
+
+    private static void writeImage(Path path, int width, int height) throws IOException {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        ImageIO.write(image, "png", path.toFile());
     }
 }

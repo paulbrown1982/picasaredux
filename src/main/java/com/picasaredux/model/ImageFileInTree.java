@@ -15,6 +15,7 @@ public class ImageFileInTree extends FileInTree {
 
     private Long hash;
     private Boolean containsFace;
+    private Dimension dimension;
 
     public ImageFileInTree(File f) {
         super(f);
@@ -35,19 +36,23 @@ public class ImageFileInTree extends FileInTree {
     }
 
     public int getHeight() {
-        BufferedImage image = loadImage();
-        if (image == null) return 0;
-        int height = image.getHeight();
-        image.flush();
-        return height;
+        if (dimension == null) {
+            updateDimension();
+        }
+        if (dimension != null) {
+            return dimension.height;
+        }
+        return 0;
     }
 
     public int getWidth() {
-        BufferedImage image = loadImage();
-        if (image == null) return 0;
-        int width = image.getWidth();
-        image.flush();
-        return width;
+        if (dimension == null) {
+            updateDimension();
+        }
+        if (dimension != null) {
+            return dimension.width;
+        }
+        return 0;
     }
 
     public Image getScaledInstance(Dimension newSize) {
@@ -67,6 +72,13 @@ public class ImageFileInTree extends FileInTree {
         graphics.dispose();
         source.flush();
         return scaled;
+    }
+
+    private void updateDimension() {
+        BufferedImage image = loadImage();
+        if (image == null) return;
+        dimension = new Dimension(image.getWidth(), image.getHeight());
+        image.flush();
     }
 
     private BufferedImage loadImage() {
