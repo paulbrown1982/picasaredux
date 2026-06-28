@@ -111,7 +111,7 @@ class VerticalSlider extends UnderlyingSwingComponent {
             album.expandAllNodes();
         });
 
-        seeLandscape.addActionListener(_ -> {
+        seeSquare.addActionListener(_ -> {
             album.setFilterMode(Album.FilterMode.SQUARE);
             album.expandAllNodes();
         });
