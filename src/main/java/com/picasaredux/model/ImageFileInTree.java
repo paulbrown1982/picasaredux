@@ -4,10 +4,13 @@ import com.picasaredux.service.FaceDetector;
 import com.picasaredux.service.OpenCvFaceDetector;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 public class ImageFileInTree extends FileInTree {
 
@@ -75,10 +78,22 @@ public class ImageFileInTree extends FileInTree {
     }
 
     private void updateDimension() {
-        BufferedImage image = loadImage();
-        if (image == null) return;
-        dimension = new Dimension(image.getWidth(), image.getHeight());
-        image.flush();
+        try (ImageInputStream input = ImageIO.createImageInputStream(getUnderlying())) {
+            if (input == null) return;
+
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) return;
+
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                dimension = new Dimension(reader.getWidth(0), reader.getHeight(0));
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read dimensions for \"" + this + "\". Reason: " + e.getMessage(), e);
+        }
     }
 
     private BufferedImage loadImage() {

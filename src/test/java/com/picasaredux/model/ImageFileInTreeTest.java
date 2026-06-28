@@ -66,6 +66,16 @@ class ImageFileInTreeTest {
         assertNull(scaled);
     }
 
+    @Test
+    void readsImageDimensions() throws IOException {
+        Path imagePath = tempDir.resolve("source.png");
+        writeImage(imagePath, 6, 4);
+        ImageFileInTree imageFile = new ImageFileInTree(imagePath.toFile());
+
+        assertEquals(6, imageFile.getWidth());
+        assertEquals(4, imageFile.getHeight());
+    }
+
     private static void writeImage(Path path, int width, int height) throws IOException {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         assertTrue(ImageIO.write(image, "png", path.toFile()));
