@@ -67,6 +67,16 @@ mvn package
 
 `mvn test` is currently passing in this repo.
 
+## Native Desktop App
+
+`mvn package` also creates a double-clickable native application image for the host OS, including a Java runtime and the application's dependencies:
+
+- macOS: `target/app-image/Picasa Redux.app`
+- Windows: `target\\app-image\\Picasa Redux\\Picasa Redux.exe`
+
+Build each artifact on its own target OS; `jpackage` does not cross-package macOS and Windows launchers. The application image uses the platform's default icon until a branded `.icns` / `.ico` asset is supplied.
+Its `app` directory contains one shaded `picasaredux-1.0-SNAPSHOT.jar`, rather than separate dependency JARs.
+
 ## Run
 
 This is a Swing desktop app and is easiest to run from an IDE:
