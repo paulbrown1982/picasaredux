@@ -13,6 +13,8 @@
     <javacpp.version>1.5.10</javacpp.version>
     <openblas.version>0.3.26-1.5.10</openblas.version>
     <opencv.version>4.9.0-1.5.10</opencv.version>
+    <main.class>com.picasaredux.Main</main.class>
+    <jpackage.executable>${java.home}/bin/jpackage</jpackage.executable>
   </properties>
   <dependencies>
     <dependency>
@@ -99,7 +101,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.picasaredux.Main</mainClass>
+              <mainClass>${main.class}</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -134,7 +136,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.picasaredux.Main</mainClass>
+                  <mainClass>${main.class}</mainClass>
                 </transformer>
               </transformers>
             </configuration>
@@ -246,13 +248,13 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>create-macos-app</id>
+                <id>create-app-image</id>
                 <phase>package</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>${java.home}/bin/jpackage</executable>
+                  <executable>${jpackage.executable}</executable>
                   <arguments>
                     <argument>--type</argument>
                     <argument>app-image</argument>
@@ -267,7 +269,7 @@
                     <argument>--main-jar</argument>
                     <argument>${project.build.finalName}.jar</argument>
                     <argument>--main-class</argument>
-                    <argument>com.picasaredux.Main</argument>
+                    <argument>${main.class}</argument>
                     <argument>--add-modules</argument>
                     <argument>java.desktop,jdk.unsupported</argument>
                     <argument>--java-options</argument>
@@ -287,6 +289,10 @@
           <family>windows</family>
         </os>
       </activation>
+      <properties>
+        <!-- On Windows, jpackage requires the .exe extension. -->
+        <jpackage.executable>${java.home}/bin/jpackage.exe</jpackage.executable>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -294,13 +300,13 @@
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>create-windows-app</id>
+                <id>create-app-image</id>
                 <phase>package</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>${java.home}/bin/jpackage.exe</executable>
+                  <executable>${jpackage.executable}</executable>
                   <arguments>
                     <argument>--type</argument>
                     <argument>app-image</argument>
@@ -315,7 +321,7 @@
                     <argument>--main-jar</argument>
                     <argument>${project.build.finalName}.jar</argument>
                     <argument>--main-class</argument>
-                    <argument>com.picasaredux.Main</argument>
+                    <argument>${main.class}</argument>
                     <argument>--add-modules</argument>
                     <argument>java.desktop,jdk.unsupported</argument>
                     <argument>--java-options</argument>
