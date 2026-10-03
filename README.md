@@ -1,11 +1,4 @@
-# Codex (gpt-5.3-codex) wrote everything below from a simple prompt.
-```
-Please scan this repo and write me a README.md file for publishing on https://github.com/paulbrown1982/picasaredux
-```
-
-I'm committing it verbatim as an example of what it can do.
-
-The documentation below has since been updated to reflect newer functionality.
+# Codex (gpt-5.3-codex and gpt-6.1-codex) wrote most of the below so please don't trust it too much!
 
 # Picasa Redux
 
@@ -142,4 +135,5 @@ To run from an IDE:
 
 ## License
 
-No license file is currently present. Add a `LICENSE` file before publishing if you want to define usage rights.
+This is a research project. Do whatever you like with the code I’ve written here - copy it, change it, share it, or sell it. No credit required, and no promises that it works.
+Other people’s libraries and images have their own terms. This project isn’t affiliated with Google, and I claim no rights to the Picasa name.
