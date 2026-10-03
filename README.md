@@ -1,4 +1,4 @@
-# Codex (gpt-5.3-codex and gpt-6.1-codex) wrote most of the below so please don't trust it too much!
+# Codex (gpt-5.3-codex and gpt-6.1-codex [medium]) wrote most of the below so please don't trust it too much!
 
 # Picasa Redux
 
