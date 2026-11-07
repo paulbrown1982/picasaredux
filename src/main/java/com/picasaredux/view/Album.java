@@ -84,31 +84,18 @@ class Album {
         jTree.setModel(defaultModel);
     }
 
-    private static final class CountsAndSize {
-        private int count;
-        private long size;
-    }
-
-    private static CountsAndSize calculateFilteredCountsAndSize(DefaultMutableTreeNode root) {
-        CountsAndSize result = new CountsAndSize();
-        calculateFilteredCountsAndSize(root, result);
-        return result;
-    }
-
-    private static void calculateFilteredCountsAndSize(DefaultMutableTreeNode node, CountsAndSize result) {
-        Object userObject = node.getUserObject();
-        if (userObject instanceof ImageFileInTree image) {
-            result.count += 1;
-            result.size += image.getFileSize();
-            return;
+    private record CountsAndSize(int count, long size) {
+        private CountsAndSize plus(CountsAndSize other) {
+            return new CountsAndSize(count + other.count, size + other.size);
         }
+    }
 
-        Enumeration<TreeNode> children = node.children();
-        while (children.hasMoreElements()) {
-            TreeNode child = children.nextElement();
-            if (child instanceof DefaultMutableTreeNode dtm) {
-                calculateFilteredCountsAndSize(dtm, result);
-            }
+    private static final class AlbumTreeNode extends DefaultMutableTreeNode {
+        private final CountsAndSize totals;
+
+        private AlbumTreeNode(Object userObject, boolean allowsChildren, CountsAndSize totals) {
+            super(userObject, allowsChildren);
+            this.totals = totals;
         }
     }
 
@@ -127,14 +114,14 @@ class Album {
                 if (!(component instanceof JLabel label)) {
                     return component;
                 }
-                if (!(value instanceof DefaultMutableTreeNode node)) {
+                if (!(value instanceof AlbumTreeNode node)) {
                     return component;
                 }
                 if (!(node.getUserObject() instanceof DirectoryInTree directory)) {
                     return component;
                 }
 
-                CountsAndSize countsAndSize = calculateFilteredCountsAndSize(node);
+                CountsAndSize countsAndSize = node.totals;
                 String details = String.format("%,d", countsAndSize.count) + " images; " + Utils.bytesPrinter(countsAndSize.size);
                 label.setText(directory.getFileName() + " [" + details + "]");
                 return component;
@@ -190,22 +177,32 @@ class Album {
     }
 
     private static DefaultMutableTreeNode asSwingTree(FileTree.Node node) {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(node.fileInTree(), !node.isLeaf());
-        node.children().stream()
+        List<DefaultMutableTreeNode> children = node.children().stream()
                 .sorted(Comparator.comparing(FileTree.Node::getNameOfFileInTree))
                 .map(Album::asSwingTree)
-                .forEach(root::add);
+                .toList();
+
+        CountsAndSize totals = node.fileInTree() instanceof ImageFileInTree image
+                ? new CountsAndSize(1, image.getFileSize())
+                : children.stream()
+                        .map(child -> ((AlbumTreeNode) child).totals)
+                        .reduce(new CountsAndSize(0, 0), CountsAndSize::plus);
+
+        AlbumTreeNode root = new AlbumTreeNode(node.fileInTree(), !node.isLeaf(), totals);
+        children.forEach(root::add);
         return root;
     }
 
     private static DefaultMutableTreeNode asSwingFaceTree(List<FaceGroupNode> groups) {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Faces");
+        AlbumTreeNode root = new AlbumTreeNode("Faces", true, new CountsAndSize(0, 0));
         for (FaceGroupNode group : groups) {
-            DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(group, true);
-            group.images().stream()
+            List<AlbumTreeNode> imageNodes = group.images().stream()
                     .sorted(Comparator.comparing(ImageFileInTree::getFileName))
-                    .map(image -> new DefaultMutableTreeNode(image, false))
-                    .forEach(groupNode::add);
+                    .map(image -> new AlbumTreeNode(image, false, new CountsAndSize(1, image.getFileSize())))
+                    .toList();
+            CountsAndSize groupTotals = new CountsAndSize(group.images().size(), group.totalSize());
+            AlbumTreeNode groupNode = new AlbumTreeNode(group, true, groupTotals);
+            imageNodes.forEach(groupNode::add);
             root.add(groupNode);
         }
         return root;
@@ -453,7 +450,8 @@ class Album {
         for (int i = 0; i < groups.size(); i++) {
             List<ImageFileInTree> groupImages = groups.get(i);
             if (!groupImages.isEmpty()) {
-                builtGroups.add(new FaceGroupNode("Face " + (i + 1), groupImages));
+                long totalSize = groupImages.stream().mapToLong(ImageFileInTree::getFileSize).sum();
+                builtGroups.add(new FaceGroupNode("Face " + (i + 1), groupImages, totalSize));
             }
         }
         faceGroups = builtGroups;
@@ -469,10 +467,9 @@ class Album {
         }
     }
 
-    private record FaceGroupNode(String label, List<ImageFileInTree> images) {
+    private record FaceGroupNode(String label, List<ImageFileInTree> images, long totalSize) {
         @Override
         public String toString() {
-            long totalSize = images.stream().mapToLong(ImageFileInTree::getFileSize).sum();
             return label + " [" + images.size() + " images; " + Utils.bytesPrinter(totalSize) + "]";
         }
     }
