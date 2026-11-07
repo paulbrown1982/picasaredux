@@ -13,8 +13,6 @@ class Thumbnail extends UnderlyingSwingComponent {
 
     private final ImageFileInTree image;
 
-    private Image thumbnailImage;
-
     Thumbnail(ImageFileInTree imageFIT) {
         label = new JLabel();
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -23,15 +21,15 @@ class Thumbnail extends UnderlyingSwingComponent {
         setUnderlyingComponent(label);
     }
 
-    void resizeImage(Dimension newSize) {
+    Image resizeImage(Dimension newSize) {
         if (newSize.height == 0) {
             float imageRatio = (float) image.getHeight() / image.getWidth();
             newSize = new Dimension(newSize.width, (int) (newSize.width * imageRatio));
         }
-        thumbnailImage = image.getScaledInstance(newSize);
+        return image.getScaledInstance(newSize);
     }
 
-    void replaceIcon(Dimension newSize) {
+    void replaceIcon(Image thumbnailImage, Dimension newSize) {
         if (newSize.height == 0) {
             float imageRatio = (float) image.getHeight() / image.getWidth();
             newSize = new Dimension(newSize.width, (int) (newSize.width * imageRatio));

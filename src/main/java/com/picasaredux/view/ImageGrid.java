@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 
 import static com.picasaredux.view.Thumbnail.CLIENT_PROPERTY;
 
@@ -18,6 +20,10 @@ class ImageGrid extends UnderlyingSwingComponent {
 
     private Dimension thumbnailSize;
     private List<Thumbnail> thumbnails;
+    private SwingWorker<List<ThumbnailResult>, Void> renderWorker;
+
+    private record ThumbnailResult(Thumbnail thumbnail, Image image) {
+    }
 
     ImageGrid(Album ft) {
         album = ft;
@@ -54,10 +60,40 @@ class ImageGrid extends UnderlyingSwingComponent {
     }
 
     private void render() {
-        thumbnails.parallelStream().forEach(thumbnail -> thumbnail.resizeImage(thumbnailSize));
-        thumbnails.forEach(thumbnail -> thumbnail.replaceIcon(thumbnailSize));
-        gridPanel.revalidate();
-        gridPanel.repaint();
+        if (renderWorker != null) {
+            renderWorker.cancel(true);
+        }
+
+        Dimension size = new Dimension(thumbnailSize);
+        List<Thumbnail> currentThumbnails = thumbnails;
+        renderWorker = new SwingWorker<>() {
+            @Override
+            protected List<ThumbnailResult> doInBackground() {
+                return currentThumbnails.parallelStream()
+                        .map(thumbnail -> new ThumbnailResult(thumbnail, thumbnail.resizeImage(size)))
+                        .toList();
+            }
+
+            @Override
+            protected void done() {
+                if (renderWorker != this || isCancelled()) {
+                    return;
+                }
+
+                try {
+                    get().forEach(result -> result.thumbnail().replaceIcon(result.image(), size));
+                    gridPanel.revalidate();
+                    gridPanel.repaint();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    throw new RuntimeException("Could not render image thumbnails", e.getCause());
+                } catch (CancellationException ignored) {
+                    // A newer render has replaced this one.
+                }
+            }
+        };
+        renderWorker.execute();
     }
 
     Dimension getThumbnailSize() {
@@ -65,7 +101,7 @@ class ImageGrid extends UnderlyingSwingComponent {
     }
 
     void setThumbnailSize(Dimension _thumbnailSize) {
-        thumbnailSize = _thumbnailSize;
+        thumbnailSize = new Dimension(_thumbnailSize);
         render();
     }
 }
