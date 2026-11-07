@@ -7,7 +7,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.release>25</maven.compiler.release>
+    <maven.compiler.release>27</maven.compiler.release>
     <!-- jpackage accepts release versions only (one to three numeric components). -->
     <application.version>1.0.0</application.version>
     <javacpp.version>1.5.10</javacpp.version>

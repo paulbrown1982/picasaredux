@@ -40,7 +40,7 @@ Click **Faces...** to start face detection and grouping in the background. Once 
 
 ## Tech Stack
 
-- Java 25
+- Java 27
 - Swing (desktop UI)
 - Maven
 - JUnit 5

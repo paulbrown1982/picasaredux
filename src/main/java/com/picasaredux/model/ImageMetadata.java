@@ -21,8 +21,6 @@ public class ImageMetadata {
             ColorModel colourModel,
             int imageType) {
 
-        private static final DecimalFormat TWO_DECIMALS = new DecimalFormat("0.00");
-
         private static int gcd(int a, int b) {
             int x = Math.abs(a);
             int y = Math.abs(b);
@@ -44,7 +42,8 @@ public class ImageMetadata {
         }
 
         public String displayableAspectRatio() {
-            return TWO_DECIMALS.format(aspectRatio) + " (" + reducedAspectRatio(width, height) + ")";
+            return new DecimalFormat("0.00").format(aspectRatio)
+                    + " (" + reducedAspectRatio(width, height) + ")";
         }
 
         public String colourModelSummary() {

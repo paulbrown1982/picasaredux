@@ -16,9 +16,9 @@ public final class Utils
             .withLocale(Locale.UK)
             .withZone(ZoneId.systemDefault());
 
-    private static final DecimalFormat ROUNDED = new DecimalFormat("0");
-
-    private static final DecimalFormat ONE_DECIMAL = new DecimalFormat("0.0");
+    private static String format(String pattern, double number) {
+        return new DecimalFormat(pattern).format(number);
+    }
 
     public static String ukDateFormat(TemporalAccessor ta) {
         if (ta == null) {
@@ -32,16 +32,16 @@ public final class Utils
             return bytes + " B";
         }
         if (bytes < 1024 * 1024) {
-            return ROUNDED.format((double) bytes / 1024d) + " KB";
+            return format("0", (double) bytes / 1024d) + " KB";
         }
         if (bytes < 1024L * 1024L * 1024L) {
-            return ONE_DECIMAL.format((double) bytes / (1024d * 1024d)) + " MB";
+            return format("0.0", (double) bytes / (1024d * 1024d)) + " MB";
         }
-        return ONE_DECIMAL.format((double) bytes / (1024d * 1024d * 1024d)) + " GB";
+        return format("0.0", (double) bytes / (1024d * 1024d * 1024d)) + " GB";
     }
 
     public static String oneDecimal(double number) {
-        return ONE_DECIMAL.format(number);
+        return format("0.0", number);
     }
 
     public static Optional<String> getFileExtension(String filename) {
