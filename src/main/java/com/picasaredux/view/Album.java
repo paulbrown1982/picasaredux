@@ -1,5 +1,6 @@
 package com.picasaredux.view;
 
+import com.picasaredux.view.AlbumTreeNode.CountsAndSize;
 import com.picasaredux.model.DirectoryInTree;
 import com.picasaredux.service.FaceCollator;
 import com.picasaredux.service.OpenCvFaceCollator;
@@ -84,21 +85,6 @@ class Album {
         jTree.setModel(defaultModel);
     }
 
-    private record CountsAndSize(int count, long size) {
-        private CountsAndSize plus(CountsAndSize other) {
-            return new CountsAndSize(count + other.count, size + other.size);
-        }
-    }
-
-    private static final class AlbumTreeNode extends DefaultMutableTreeNode {
-        private final CountsAndSize totals;
-
-        private AlbumTreeNode(Object userObject, boolean allowsChildren, CountsAndSize totals) {
-            super(userObject, allowsChildren);
-            this.totals = totals;
-        }
-    }
-
     private void setupTreeCellRenderer() {
         jTree.setCellRenderer(new DefaultTreeCellRenderer() {
             @Override
@@ -121,8 +107,8 @@ class Album {
                     return component;
                 }
 
-                CountsAndSize countsAndSize = node.totals;
-                String details = String.format("%,d", countsAndSize.count) + " images; " + Utils.bytesPrinter(countsAndSize.size);
+                CountsAndSize countsAndSize = node.getManifest();
+                String details = String.format("%,d", countsAndSize.count()) + " images; " + Utils.bytesPrinter(countsAndSize.size());
                 label.setText(directory.getFileName() + " [" + details + "]");
                 return component;
             }
@@ -176,16 +162,16 @@ class Album {
         }
     }
 
-    private static DefaultMutableTreeNode asSwingTree(FileTree.Node node) {
-        List<DefaultMutableTreeNode> children = node.children().stream()
+    private static AlbumTreeNode asAlbumTree(FileTree.Node node) {
+        List<AlbumTreeNode> children = node.children().stream()
                 .sorted(Comparator.comparing(FileTree.Node::getNameOfFileInTree))
-                .map(Album::asSwingTree)
+                .map(Album::asAlbumTree)
                 .toList();
 
         CountsAndSize totals = node.fileInTree() instanceof ImageFileInTree image
                 ? new CountsAndSize(1, image.getFileSize())
                 : children.stream()
-                        .map(child -> ((AlbumTreeNode) child).totals)
+                        .map(AlbumTreeNode::getManifest)
                         .reduce(new CountsAndSize(0, 0), CountsAndSize::plus);
 
         AlbumTreeNode root = new AlbumTreeNode(node.fileInTree(), !node.isLeaf(), totals);
@@ -193,7 +179,7 @@ class Album {
         return root;
     }
 
-    private static DefaultMutableTreeNode asSwingFaceTree(List<FaceGroupNode> groups) {
+    private static AlbumTreeNode asSwingFaceTree(List<FaceGroupNode> groups) {
         AlbumTreeNode root = new AlbumTreeNode("Faces", true, new CountsAndSize(0, 0));
         for (FaceGroupNode group : groups) {
             List<AlbumTreeNode> imageNodes = group.images().stream()
@@ -216,7 +202,7 @@ class Album {
             if (root == null) {
                 defaultModel = new DefaultTreeModel(new DefaultMutableTreeNode());
             } else {
-                defaultModel = new DefaultTreeModel(asSwingTree(root), true);
+                defaultModel = new DefaultTreeModel(asAlbumTree(root), true);
             }
         }
         jTree.setModel(defaultModel);

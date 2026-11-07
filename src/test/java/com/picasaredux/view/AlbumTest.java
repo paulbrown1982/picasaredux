@@ -86,6 +86,7 @@ class AlbumTest {
         DefaultMutableTreeNode folderNodeAfterFilter = findDirectoryNode(view);
         String dupesText = renderNodeText(view, folderNodeAfterFilter);
         // Only the 2 duplicates should be counted in DUPLICATES mode
+
         org.junit.jupiter.api.Assertions.assertTrue(dupesText.contains("2 images"), dupesText);
     }
 
